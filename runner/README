@@ -1,0 +1,129 @@
+int setrlimit():限制资源
+RLIMIT_CPU cpu限制单位s
+注意它只能控制 CPU 时间，不能控制实际运行时间，所以像是 sleep 或者 IO 阻塞之类的情况是没有办法的
+所以还在额外添加了一个 alarm 来进行实际时间的限制。
+
+RLIMTI_AS  地址空间限制 bytes
+RLIMIT_FSIZE 文件大小 bytes
+blog: https://blog.csdn.net/CSLQM/article/details/53227572
+
+===========
+#include<sys/wait.h>
+
+int wait(int*status);
+父进程会阻塞,直到子进程退出,
+函数返回子进程pid,以及退出状态status;
+
+============
+#include<signal.h>
+
+signal(SIG_NUM,handler);//接收到信号后处理handler函数
+void handler(int signo);
+
+alarm(int time_second);
+time_second秒后会发出一个SIGALRM信息
+
+
+
+=============
+#include<unistd.h>
+fork函数
+child_pid=fork();//子进程child_pid为0,父进程child_pid为子进程pid
+
+execve函数
+execve()
+
+fork函数是用于创建一个子进程，该子进程几乎是父进程的副本
+而有时我们希望子进程去执行另外的程序，exec函数族就提供了一个在进程中启动另一个程序执行的方法。
+它可以根据指定的文件名或目录名找到可执行文件，并用它来取代原调用进程的数据段、代码段和堆栈段，
+在执行完之后，原调用进程的内容除了进程号外，其他全部被新程序的内容替换了。
+
+=============
+#include<singal.h>
+#include<sys/types.h> SIG函数枚举值
+int kill(int pid,int SIG);
+kill函数,向pid传递SIG信号
+
+
+
+
+=================
+int open(const char*s,int flags...)
+打开文件,返回文件描述符
+
+===================
+seccomp
+安装:
+sudo apt install libseccomp-dev libseccomp2 seccomp
+#include<seccomp.h>
+
+
+1,我们用的是seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 0);
+arg_cnt为0,表示我们直接限制execve,不管他什么参数.
+如果arg_cnt不为0,那arg_cnt表示后面限制的参数的个数,也就是只有调用execve,
+且参数满足要求时,才会拦截syscall.
+
+2,seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 1,
+                   SCMP_A0(SCMP_CMP_NE, filename));
+
+
+链接的时候: gcc a.cpp -lseccomp
+
+
+
+文档:
+只给打开特定文件: http://www.ojit.com/article/1224327
+seccomp文档:    https://blog.csdn.net/ATOOHOO/article/details/88668691
+
+
+
+=================
+overlay 文件系统
+
+
+sudo mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work merged
+这里允许存在多个lowerdir，使用“：”分隔即可，upperdir和workerdir是可选的，且它们必须位于同一个文件系统上，workdir似乎是用来存储一些操作的中间产物的。
+LLL，UUU，WWW，MMM均为目录，且WWW必须为空。
+
+
+lowerdir:在merged里不可修改,只可读
+upperdir:在merged里可写
+
+
+==========================
+vscode 命令行
+ctrl + ` 打开或者关闭默认终端
+ctrl + shift + ` 创建新终端
+
+
+
+
+==========
+ulimit
+https://www.ibm.com/developerworks/cn/linux/l-cn-ulimit/
+
+seccomp-bpf用法
+
+
+
+=========
+strace工具帮助分析系统调用
+
+
+linux 文件重定向原理
+静态编译
+参考:  https://github.com/ma6174/acmjudger
+linux 能力机制 https://www.cnblogs.com/gordon0918/p/5328436.html
+
+
+overlay文件系统
+http://blog.lucode.net/linux/play-with-overlayfs.html
+https://www.jianshu.com/p/959e8e3da4b2
+
+
+
+不能在docker里mount:
+https://forums.docker.com/t/cannot-use-mount-within-a-docker-container/77272
+
+
+==============
