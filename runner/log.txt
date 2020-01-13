@@ -23,3 +23,199 @@
 2019-11-25 12:04:45 runner.c(172): INFO: begin to run exe file
 2019-11-25 12:04:45 runner.c(148): INFO: parent:the childPid is 7566,status is 159
 2019-11-25 12:04:45 runner.c(174): INFO: finish run
+2019-12-05 16:03:04 runner.c(156): INFO: before compile
+2019-12-05 16:03:06 runner.c(74): INFO: the compile subprogress pid is 13327,retcode is 256
+
+2019-12-05 16:03:06 runner.c(158): INFO: begin to run exe file
+2019-12-05 16:03:06 runner.c(160): INFO: finish run
+2019-12-05 16:03:06 runner.c(135): INFO: the childPid is 13339,status is 0
+
+2019-12-05 16:03:06 runner.c(160): INFO: finish run
+2019-12-05 16:03:30 runner.c(156): INFO: before compile
+2019-12-05 16:03:30 runner.c(74): INFO: the compile subprogress pid is 13355,retcode is 256
+
+2019-12-05 16:03:30 runner.c(158): INFO: begin to run exe file
+2019-12-05 16:03:30 runner.c(160): INFO: finish run
+2019-12-05 16:03:30 runner.c(135): INFO: the childPid is 13360,status is 0
+
+2019-12-05 16:03:30 runner.c(160): INFO: finish run
+2019-12-05 16:04:15 runner.c(172): INFO: before compile
+2019-12-05 16:04:16 runner.c(87): INFO: the compile subprogress pid is 13404,retcode is 0
+
+2019-12-05 16:04:16 runner.c(175): INFO: begin to run exe file
+2019-12-05 16:04:16 runner.c(151): INFO: parent:the childPid is 13409,status is 31
+2019-12-05 16:04:16 runner.c(177): INFO: finish run
+2019-12-05 16:05:45 runner.c(172): INFO: before compile
+2019-12-05 16:05:45 runner.c(87): INFO: the compile subprogress pid is 13508,retcode is 0
+
+2019-12-05 16:05:45 runner.c(175): INFO: begin to run exe file
+2019-12-05 16:05:45 runner.c(151): INFO: parent:the childPid is 13513,status is 0
+2019-12-05 16:05:45 runner.c(177): INFO: finish run
+2019-12-19 15:00:26 runner.c(175): INFO: before compile
+2019-12-19 15:00:27 runner.c(87): INFO: the compile subprogress pid is 6781,retcode is 0
+
+2019-12-19 15:00:27 runner.c(178): INFO: begin to run exe file
+2019-12-19 15:00:27 runner.c(154): INFO: parent:the childPid is 6796,status is 0
+2019-12-19 15:00:27 runner.c(180): INFO: finish run
+2019-12-19 15:08:26 runner.c(175): INFO: before compile
+2019-12-19 15:08:26 runner.c(87): INFO: the compile subprogress pid is 7052,retcode is 0
+
+2019-12-19 15:08:26 runner.c(178): INFO: begin to run exe file
+2019-12-19 15:08:26 runner.c(154): INFO: parent:the childPid is 7057,status is 0
+2019-12-19 15:08:26 runner.c(180): INFO: finish run
+2019-12-19 15:13:26 runner.c(176): INFO: before compile
+2019-12-19 15:13:26 runner.c(87): INFO: the compile subprogress pid is 7227,retcode is 0
+
+2019-12-19 15:13:26 runner.c(179): INFO: begin to run exe file
+2019-12-19 15:13:26 runner.c(155): INFO: parent:the childPid is 7232,status is 0
+2019-12-19 15:13:26 runner.c(181): INFO: finish run
+2019-12-19 15:18:59 runner.c(176): INFO: before compile
+2019-12-19 15:18:59 runner.c(87): INFO: the compile subprogress pid is 7495,retcode is 0
+
+2019-12-19 15:18:59 runner.c(179): INFO: begin to run exe file
+2019-12-19 15:18:59 runner.c(155): INFO: parent:the childPid is 7500,status is 0
+2019-12-19 15:18:59 runner.c(181): INFO: finish run
+2019-12-19 15:21:48 runner.c(177): INFO: before compile
+2019-12-19 15:21:49 runner.c(87): INFO: the compile subprogress pid is 8253,retcode is 0
+
+2019-12-19 15:21:49 runner.c(180): INFO: begin to run exe file
+2019-12-19 15:21:49 runner.c(156): INFO: parent:the childPid is 8258,status is 0
+2019-12-19 15:21:49 runner.c(182): INFO: finish run
+2019-12-19 15:22:17 runner.c(177): INFO: before compile
+2019-12-19 15:22:17 runner.c(87): INFO: the compile subprogress pid is 8309,retcode is 0
+
+2019-12-19 15:22:17 runner.c(180): INFO: begin to run exe file
+2019-12-19 15:22:17 runner.c(156): INFO: parent:the childPid is 8314,status is 0
+2019-12-19 15:22:17 runner.c(182): INFO: finish run
+2019-12-19 15:23:04 runner.c(177): INFO: before compile
+2019-12-19 15:23:04 runner.c(87): INFO: the compile subprogress pid is 8359,retcode is 0
+
+2019-12-19 15:23:04 runner.c(180): INFO: begin to run exe file
+2019-12-19 15:23:04 runner.c(156): INFO: parent:the childPid is 8364,status is 0
+2019-12-19 15:23:04 runner.c(182): INFO: finish run
+2019-12-19 16:14:43 runner.c(186): INFO: before compile
+2019-12-19 16:14:44 runner.c(89): INFO: the compile subprogress pid is 11370,retcode is 0
+
+2019-12-19 16:14:44 runner.c(189): INFO: begin to run exe file
+2019-12-19 16:14:44 runner.c(161): INFO: retCode is 11375,status is 0
+
+2019-12-19 16:14:44 runner.c(191): INFO: finish run
+2019-12-19 16:17:59 runner.c(187): INFO: before compile
+2019-12-19 16:17:59 runner.c(89): INFO: the compile subprogress pid is 11806,retcode is 0
+
+2019-12-19 16:17:59 runner.c(190): INFO: begin to run exe file
+2019-12-19 16:17:59 runner.c(162): INFO: retCode is 11811,status is 0
+
+2019-12-19 16:17:59 runner.c(192): INFO: finish run
+2019-12-19 16:21:35 runner.c(186): INFO: before compile
+2019-12-19 16:21:35 runner.c(89): INFO: the compile subprogress pid is 12027,retcode is 0
+
+2019-12-19 16:21:35 runner.c(189): INFO: begin to run exe file
+2019-12-19 16:21:35 runner.c(161): INFO: retCode is -1,status is 0
+
+2019-12-19 16:21:35 runner.c(191): INFO: finish run
+2019-12-19 16:24:57 runner.c(186): INFO: before compile
+2019-12-19 16:24:57 runner.c(89): INFO: the compile subprogress pid is 12219,retcode is 0
+
+2019-12-19 16:24:57 runner.c(189): INFO: begin to run exe file
+2019-12-19 16:24:57 runner.c(161): INFO: child pid is 12224,retCode is 12224,status is 0
+
+2019-12-19 16:24:57 runner.c(191): INFO: finish run
+2019-12-19 16:32:45 runner.c(191): INFO: before compile
+2019-12-19 16:32:45 runner.c(89): INFO: the compile subprogress pid is 13175,retcode is 0
+
+2019-12-19 16:32:45 runner.c(194): INFO: begin to run exe file
+2019-12-19 16:32:45 runner.c(161): INFO: child pid is 13180,retCode is 13180,status is 0
+
+2019-12-19 16:32:45 runner.c(196): INFO: finish run
+2019-12-19 16:33:13 runner.c(191): INFO: before compile
+2019-12-19 16:33:13 runner.c(89): INFO: the compile subprogress pid is 13264,retcode is 0
+
+2019-12-19 16:33:13 runner.c(194): INFO: begin to run exe file
+2019-12-19 16:33:13 runner.c(161): INFO: child pid is 13269,retCode is 13269,status is 0
+
+2019-12-19 16:33:13 runner.c(196): INFO: finish run
+2019-12-19 16:34:27 runner.c(191): INFO: before compile
+2019-12-19 16:34:27 runner.c(89): INFO: the compile subprogress pid is 13311,retcode is 0
+
+2019-12-19 16:34:27 runner.c(194): INFO: begin to run exe file
+2019-12-19 16:34:27 runner.c(161): INFO: child pid is 13316,retCode is 13316,status is 0
+
+2019-12-19 16:34:27 runner.c(196): INFO: finish run
+2019-12-19 16:36:42 runner.c(191): INFO: before compile
+2019-12-19 16:36:42 runner.c(89): INFO: the compile subprogress pid is 13389,retcode is 0
+
+2019-12-19 16:36:42 runner.c(194): INFO: begin to run exe file
+2019-12-19 16:36:44 runner.c(161): INFO: child pid is 13394,retCode is 13394,status is 9
+
+2019-12-19 16:36:44 runner.c(196): INFO: finish run
+2020-01-10 15:57:57 runner.c(191): INFO: before compile
+2020-01-10 15:57:58 runner.c(89): INFO: the compile subprogress pid is 5333,retcode is 0
+
+2020-01-10 15:57:58 runner.c(194): INFO: begin to run exe file
+2020-01-10 15:58:00 runner.c(161): INFO: child pid is 5347,retCode is 5347,status is 9
+
+2020-01-10 15:58:00 runner.c(196): INFO: finish run
+2020-01-10 16:04:19 runner.c(191): INFO: before compile
+2020-01-10 16:04:19 runner.c(89): INFO: the compile subprogress pid is 5909,retcode is 0
+
+2020-01-10 16:04:19 runner.c(194): INFO: begin to run exe file
+2020-01-10 16:04:21 runner.c(161): INFO: child pid is 5914,retCode is 5914,status is 9
+
+2020-01-10 16:04:21 runner.c(196): INFO: finish run
+2020-01-10 16:07:12 runner.c(191): INFO: before compile
+2020-01-10 16:07:12 runner.c(89): INFO: the compile subprogress pid is 6042,retcode is 0
+
+2020-01-10 16:07:12 runner.c(194): INFO: begin to run exe file
+2020-01-10 16:07:13 runner.c(161): INFO: child pid is 6047,retCode is 6047,status is 0
+
+2020-01-10 16:07:13 runner.c(196): INFO: finish run
+2020-01-10 16:30:54 runner.c(207): INFO: before compile
+2020-01-10 16:30:56 runner.c(90): INFO: the compile subprogress pid is 7694,retcode is 0
+
+2020-01-10 16:30:56 runner.c(210): INFO: begin to run exe file
+2020-01-10 16:30:57 runner.c(165): INFO: child pid is 7699,retCode is 7699,status is 0
+
+2020-01-10 16:30:57 runner.c(212): INFO: finish run
+2020-01-10 16:50:34 runner.c(212): INFO: before compile
+2020-01-10 16:50:34 runner.c(90): INFO: the compile subprogress pid is 8519,retcode is 0
+
+2020-01-10 16:50:34 runner.c(215): INFO: begin to run exe file
+2020-01-10 16:50:36 runner.c(165): INFO: child pid is 8524,retCode is 8524,status is 9
+
+2020-01-10 16:50:36 runner.c(217): INFO: finish run
+2020-01-10 16:52:19 runner.c(212): INFO: before compile
+2020-01-10 16:52:19 runner.c(90): INFO: the compile subprogress pid is 8642,retcode is 0
+
+2020-01-10 16:52:19 runner.c(215): INFO: begin to run exe file
+2020-01-10 16:52:21 runner.c(165): INFO: child pid is 8647,retCode is 8647,status is 9
+
+2020-01-10 16:52:21 runner.c(217): INFO: finish run
+2020-01-10 16:54:22 runner.c(211): INFO: before compile
+2020-01-10 16:54:22 runner.c(90): INFO: the compile subprogress pid is 8761,retcode is 0
+
+2020-01-10 16:54:22 runner.c(214): INFO: begin to run exe file
+2020-01-10 16:54:24 runner.c(165): INFO: child pid is 8766,retCode is 8766,status is 9
+
+2020-01-10 16:54:24 runner.c(216): INFO: finish run
+2020-01-10 16:55:08 runner.c(211): INFO: before compile
+2020-01-10 16:55:08 runner.c(90): INFO: the compile subprogress pid is 8820,retcode is 0
+
+2020-01-10 16:55:08 runner.c(214): INFO: begin to run exe file
+2020-01-10 16:55:10 runner.c(165): INFO: child pid is 8825,retCode is 8825,status is 9
+
+2020-01-10 16:55:10 runner.c(216): INFO: finish run
+2020-01-10 16:55:54 runner.c(211): INFO: before compile
+2020-01-10 16:55:54 runner.c(90): INFO: the compile subprogress pid is 8861,retcode is 0
+
+2020-01-10 16:55:54 runner.c(214): INFO: begin to run exe file
+2020-01-10 16:55:54 runner.c(165): INFO: child pid is 8866,retCode is 8866,status is 0
+
+2020-01-10 16:55:54 runner.c(216): INFO: finish run
+2020-01-10 16:56:48 runner.c(211): INFO: before compile
+2020-01-10 16:56:48 runner.c(90): INFO: the compile subprogress pid is 8986,retcode is 0
+
+2020-01-10 16:56:48 runner.c(214): INFO: begin to run exe file
+2020-01-10 16:56:48 runner.c(165): INFO: child pid is 8991,retCode is 8991,status is 0
+
+2020-01-10 16:56:48 runner.c(216): INFO: finish run

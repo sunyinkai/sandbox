@@ -2,11 +2,14 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/resource.h>
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include "syscall_monitor.h"
+
 #define CLOG_MAIN
 #include "logger.h"
 const int UNIQ_LOG_ID = 0;
@@ -112,25 +115,30 @@ int runProgress(ResourceConfig *config)
         //setProgressLimit(RLIMIT_CPU, (config->time + 1000) / 1000);
         //setProgressLimit(RLIMIT_AS, config->memory + 10240);
         //setProgressLimit(RLIMIT_FSIZE, config->disk + 10240);
+        //setProgressLimit(RLIMIT_CORE,0);
 
         //重定向IO
-        //这里需要设置输出文件的权限
         const char *path = "/home/naoh/Program/go/src/sandbox/output";
         char infileName[100];
         char outfileName[100];
         sprintf(infileName, "%s/in.txt", path);
         sprintf(outfileName, "%s/output.txt", path);
         int read_fd = open(infileName, O_RDONLY);
-        int write_fd = open(outfileName, O_WRONLY | O_CREAT | O_TRUNC);
+        int filePerms = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; //创建的文件权限
+        int openFlags = O_WRONLY | O_CREAT | O_TRUNC;
+        int write_fd = open(outfileName, openFlags, filePerms);
         dup2(read_fd, STDIN_FILENO);
         dup2(write_fd, STDOUT_FILENO);
-
         //安装system_call filter
         char cmd[100];
         sprintf(cmd, "%s/a.out", path);
         struct InformationToFilter info;
         info.exeFileName = cmd;
         install_seccomp_filter(&info);
+
+        // 修改uid和gid
+        //setgid(65534);
+        //setuid(65534);
 
         //执行命令
         char *argv[] = {cmd, NULL};
@@ -140,12 +148,47 @@ int runProgress(ResourceConfig *config)
     }
     else //父进程
     {
+        //OnEvent
         childProgress.child_pid = fpid;
         signal(SIGALRM, time_out_kill); //注册超时杀死进程事件
-        alarm((config->time + 1000) / 1000);
-        int status = -1;
-        int childPid = wait(&status);
-        clog_info(CLOG(UNIQ_LOG_ID), "parent:the childPid is %d,status is %d", childPid, status);
+        int runKillTime = (config->time + 1000) / 1000;
+        alarm(runKillTime);
+        int childStatus = -1;
+        struct rusage rusage;
+        //获取子进程资源消耗情况
+        struct timeval startTv, endTv;
+        while (1)
+        {
+            int retCode = wait4(fpid, &childStatus, WNOHANG, &rusage);
+            if (retCode != 0) //子进程状态发生了变化
+            {
+                clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,status is %d\n", fpid, retCode, childStatus);
+                break;
+            }
+        }
+
+        //EventAfter
+        //todo MLE
+        struct timeval user, system;
+        user = rusage.ru_utime;
+        system = rusage.ru_stime;
+        long long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
+        printf("user time:%ld%ld\n", user.tv_sec, user.tv_usec / 1000);
+        printf("system time:%ld%ld\n", system.tv_sec, system.tv_usec / 1000);
+        printf("total UsedTime:%lld\n", usedTime);
+        //TLE
+        if (usedTime > config->time)
+        {
+            childProgress.judge_status = EXIT_JUDGE_TLE;
+        }
+        else if (childStatus == 0) //AC
+        {
+            childProgress.judge_status = EXIT_JUDGE_AC;
+        }
+        else //RE
+        {
+            childProgress.judge_status = EXIT_JUDGE_RE;
+        }
     }
     return EXIT_SYSTEM_SUCCESS;
 }

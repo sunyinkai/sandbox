@@ -13,7 +13,6 @@ void install_seccomp_filter(struct InformationToFilter *infoFile)
     };
     scmp_filter_ctx ctx;
     ctx = seccomp_init(SCMP_ACT_ALLOW);
-
     for (int i = 0; i < sizeof(blackList) / sizeof(int); ++i)
     {
         seccomp_rule_add(ctx, SCMP_ACT_KILL, blackList[i], 0);
