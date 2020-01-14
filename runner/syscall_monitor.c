@@ -19,7 +19,7 @@ void install_seccomp_filter(struct InformationToFilter *infoFile)
     }
 
     seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 1,
-                     SCMP_A0(SCMP_CMP_NE, infoFile->exeFileName));
+                     SCMP_A0(SCMP_CMP_NE,infoFile->exeFileName));
     seccomp_load(ctx);
     return;
 }
