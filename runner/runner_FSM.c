@@ -1,5 +1,6 @@
 #include "contants.h"
 #include <stdio.h>
+#include<assert.h>
 #include <sys/wait.h>
 #include <sys/resource.h>
 #include <time.h>
@@ -90,7 +91,7 @@ int compile(struct ResourceConfig *config)
     {
         int status;
         int retCode = wait(&status);
-        clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d\n", retCode, status);
+        clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
     }
     return 0;
 }
@@ -100,7 +101,7 @@ typedef struct FSMEdge{
     int curState;
     int event;
     int nextState;
-    void (*fun)();
+    void (*fun)(void*);
 }FSMEdge;
 
 //状态
@@ -120,11 +121,18 @@ enum Event{
     CondChildExit,//事件:子进程退出
 };
 
-void ChildInit();
-void ParMonitor();
-void ChildRun();
-void ParAfterRun();
-void Init();
+void ChildInit(void*);
+void ParMonitor(void*);
+void ChildRun(void*);
+void ParAfterRun(void*);
+void Init(void*);
+
+
+struct ArgsParAfterRun{
+    int childExitStatus;//子进程退出状态
+    struct rusage rusage;//子进程资源使用情况
+};
+
 
 //全部变量:转移表
 FSMEdge transferTable[]={
@@ -155,10 +163,10 @@ void FSMTransfer(FSM*pFSM,int state){
 }
 
 //事件处理
-void FSMEventHandler(FSM*pFSM,int event){
+void FSMEventHandler(FSM*pFSM,int event,void*params){
     FSMEdge*pActTable=pFSM->pFSMTable;
     int isFind=0;
-    void(*func)()=NULL;
+    void(*func)(void*)=NULL;
     int nextState=-1;
     for(int i=0;i<pFSM->size;++i){
         if(event==pActTable[i].event&&pFSM->curState==pActTable[i].curState){
@@ -171,7 +179,7 @@ void FSMEventHandler(FSM*pFSM,int event){
     if(isFind){
         FSMTransfer(pFSM,nextState);
         if(func){//注意与切换状态的顺序
-            func();
+            func(params);
         }
     }else{
         printf("Not find such event\n");
@@ -183,7 +191,7 @@ void FSMEventHandler(FSM*pFSM,int event){
 FSM fsm;
 
 //子进程初始化函数
-void ChildInit(){
+void ChildInit(void*params){
     //设置资源限制
     // setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 1000) / 1000);
     // setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10240);
@@ -215,11 +223,11 @@ void ChildInit(){
     //setgid(65534);
     //setuid(65534);
 
-    FSMEventHandler(&fsm,CondAfterInit);
+    FSMEventHandler(&fsm,CondAfterInit,NULL);
 }
 
 //子进程运行函数
-void ChildRun(){
+void ChildRun(void*params){
     const char *path = "/home/naoh/Program/go/src/sandbox/output";
     char cmd[100];
     sprintf(cmd, "%s/a.out", path);
@@ -233,7 +241,7 @@ void ChildRun(){
 
 
 //父进程监听函数
-void ParMonitor(){
+void ParMonitor(void*params){
     int fpid=childProgress.child_pid;
     signal(SIGALRM, time_out_kill); //注册超时杀死进程事件
     int runKillTime = (resouceConfig.time + 1000) / 1000;
@@ -246,18 +254,42 @@ void ParMonitor(){
         int retCode = wait4(fpid, &childStatus, WNOHANG, &rusage);
         if (retCode != 0) //子进程状态发生了变化
         {
-            clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,status is %d\n", fpid, retCode, childStatus);
+            clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,status is %d", fpid, retCode, childStatus);
             break;
         }
     }
-
-    FSMEventHandler(&fsm,CondChildExit);
+    struct ArgsParAfterRun args; 
+    args.childExitStatus=childStatus;
+    args.rusage=rusage;
+    FSMEventHandler(&fsm,CondChildExit,&args);
 }
 
 
 //运行结束函数OnParAfterRun
-void ParAfterRun(){
-    printf("now par after run\n");
+void ParAfterRun(void*params){
+    assert(params!=NULL);
+    struct ArgsParAfterRun* args=(struct ArgsParAfterRun*)params;
+
+    struct timeval user, system;
+    user = args->rusage.ru_utime;
+    system = args->rusage.ru_stime;
+    long long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
+    printf("user time:%ld%ld\n", user.tv_sec, user.tv_usec / 1000);
+    printf("system time:%ld%ld\n", system.tv_sec, system.tv_usec / 1000);
+    printf("total UsedTime:%lld\n", usedTime);
+    //TLE
+    if (usedTime > resouceConfig.time)
+    {
+        childProgress.judge_status = EXIT_JUDGE_TLE;
+    }
+    else if (args->childExitStatus == 0) //AC
+    {
+        childProgress.judge_status = EXIT_JUDGE_AC;
+    }
+    else //RE
+    {
+        childProgress.judge_status = EXIT_JUDGE_RE;
+    }
 }
 
 //初始化资源配置函数
@@ -289,10 +321,10 @@ void Run(){
         printf("error\n");
 
     }else if(fpid==0){
-        FSMEventHandler(&fsm,CondIsChild);
+        FSMEventHandler(&fsm,CondIsChild,NULL);
     }else{
         childProgress.child_pid = fpid;
-        FSMEventHandler(&fsm,CondIsPar);
+        FSMEventHandler(&fsm,CondIsPar,NULL);
     }
 }
 

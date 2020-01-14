@@ -160,3 +160,37 @@
 2020-01-13 22:55:46 runner_FSM.c(250): INFO: child pid is 22783,retCode is 22783,status is 0
 
 2020-01-13 22:55:46 runner_FSM.c(303): INFO: finish run
+2020-01-14 11:26:01 runner_FSM.c(303): INFO: before compile
+2020-01-14 11:26:02 runner_FSM.c(93): INFO: the compile subprogress pid is 10726,retcode is 0
+
+2020-01-14 11:26:02 runner_FSM.c(306): INFO: begin to run exe file
+2020-01-14 11:26:04 runner_FSM.c(249): INFO: child pid is 10740,retCode is 10740,status is 159
+
+2020-01-14 11:26:43 runner_FSM.c(303): INFO: before compile
+2020-01-14 11:26:43 runner_FSM.c(93): INFO: the compile subprogress pid is 10835,retcode is 0
+
+2020-01-14 11:26:43 runner_FSM.c(306): INFO: begin to run exe file
+2020-01-14 11:26:43 runner_FSM.c(249): INFO: child pid is 10840,retCode is 10840,status is 0
+
+2020-01-14 11:31:20 runner_FSM.c(303): INFO: before compile
+2020-01-14 11:31:20 runner_FSM.c(93): INFO: the compile subprogress pid is 11071,retcode is 0
+
+2020-01-14 11:31:20 runner_FSM.c(306): INFO: begin to run exe file
+2020-01-14 11:31:20 runner_FSM.c(249): INFO: child pid is 11076,retCode is 11076,status is 0
+
+2020-01-14 11:35:55 runner_FSM.c(305): INFO: before compile
+2020-01-14 11:35:56 runner_FSM.c(94): INFO: the compile subprogress pid is 11881,retcode is 0
+
+2020-01-14 11:35:56 runner_FSM.c(308): INFO: begin to run exe file
+2020-01-14 11:35:56 runner_FSM.c(250): INFO: child pid is 11894,retCode is 11894,status is 0
+
+2020-01-14 11:44:43 runner_FSM.c(335): INFO: before compile
+2020-01-14 11:44:43 runner_FSM.c(94): INFO: the compile subprogress pid is 12400,retcode is 0
+
+2020-01-14 11:44:43 runner_FSM.c(338): INFO: begin to run exe file
+2020-01-14 11:44:43 runner_FSM.c(257): INFO: child pid is 12405,retCode is 12405,status is 0
+
+2020-01-14 11:45:39 runner_FSM.c(335): INFO: before compile
+2020-01-14 11:45:39 runner_FSM.c(94): INFO: the compile subprogress pid is 12485,retcode is 0
+2020-01-14 11:45:39 runner_FSM.c(338): INFO: begin to run exe file
+2020-01-14 11:45:39 runner_FSM.c(257): INFO: child pid is 12490,retCode is 12490,status is 0
