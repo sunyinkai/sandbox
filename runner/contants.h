@@ -11,5 +11,7 @@
 #define EXIT_JUDGE_CE 132
 
 #define MB_TO_BYTES 1 * 1024 * 1024
+#define MB_TO_KB 1024
+#define KB_TO_BYTES 1024
 
 #endif

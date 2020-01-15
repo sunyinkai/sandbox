@@ -1,6 +1,6 @@
 #include "contants.h"
 #include <stdio.h>
-#include<assert.h>
+#include <assert.h>
 #include <sys/wait.h>
 #include <sys/resource.h>
 #include <time.h>
@@ -15,13 +15,12 @@
 #include "logger.h"
 const int UNIQ_LOG_ID = 0;
 
-
 //系统资源限制配置
 struct ResourceConfig
 {
     int time;       //单位ms,这里是CPU时间
-    int memory;     //单位M
-    int disk;       //单位M
+    long memory;    //单位Bytes
+    long disk;      //单位Bytes
     char *language; //语言
 } resouceConfig;
 
@@ -34,7 +33,6 @@ struct ChildProgresInfo
     int exit_code;     //子进程退出状态码
 } childProgress;
 
-
 //设置成功返回0,否则返回-1
 int setProgressLimit(int resource, int val)
 {
@@ -45,14 +43,29 @@ int setProgressLimit(int resource, int val)
 }
 
 //超时杀死程序
-void time_out_kill(int sigId)
+void time_limit_kill(int sigId)
 {
     if (childProgress.child_pid > 0)
     {
         int retCode = kill(childProgress.child_pid, SIGKILL);
-        if (retCode == 0)
+        if (retCode != 0)
         {
-            childProgress.judge_status = EXIT_JUDGE_TLE;
+            childProgress.system_status = EXIT_SYSTEM_ERROR;
+            clog_error(CLOG(UNIQ_LOG_ID), "kill system call error\n");
+        }
+    }
+    alarm(0);
+}
+
+void memory_limit_kill()
+{
+    if (childProgress.child_pid > 0)
+    {
+        int retCode = kill(childProgress.child_pid, SIGKILL);
+        if (retCode != 0)
+        {
+            childProgress.system_status = EXIT_SYSTEM_ERROR;
+            clog_error(CLOG(UNIQ_LOG_ID), "kill system call error\n");
         }
     }
     alarm(0);
@@ -97,16 +110,18 @@ int compile(struct ResourceConfig *config)
 }
 
 //
-typedef struct FSMEdge{
+typedef struct FSMEdge
+{
     int curState;
     int event;
     int nextState;
-    void (*fun)(void*);
-}FSMEdge;
+    void (*fun)(const void *);
+} FSMEdge;
 
 //状态
-enum RunnerState{
-    OnStart=0,
+enum RunnerState
+{
+    OnStart = 0,
     OnChildInit,
     OnParMonitor,
     OnChildRun,
@@ -114,89 +129,120 @@ enum RunnerState{
 };
 
 //事件
-enum Event{
-    CondIsPar=0,//事件:是父进程
-    CondIsChild,//事件:是子进程
-    CondAfterInit,//事件:子进程初始化完毕
-    CondChildExit,//事件:子进程退出
+enum Event
+{
+    CondIsPar = 0, //事件:是父进程
+    CondIsChild,   //事件:是子进程
+    CondAfterInit, //事件:子进程初始化完毕
+    CondChildExit, //事件:子进程退出
 };
 
-void ChildInit(void*);
-void ParMonitor(void*);
-void ChildRun(void*);
-void ParAfterRun(void*);
-void Init(void*);
+void ChildInit(const void *);
+void ParMonitor(const void *);
+void ChildRun(const void *);
+void ParAfterRun(const void *);
+void Init(const void *);
 
-
-struct ArgsParAfterRun{
-    int childExitStatus;//子进程退出状态
-    struct rusage rusage;//子进程资源使用情况
+struct ArgsParAfterRun
+{
+    int childExitStatus;  //子进程退出状态
+    long maxMemUsage;     //最大内存使用量
+    struct rusage rusage; //子进程资源使用情况
 };
-
 
 //全部变量:转移表
-FSMEdge transferTable[]={
-    {OnStart,CondIsChild,OnChildInit,ChildInit,},
-    {OnStart,CondIsPar,OnParMonitor,ParMonitor,},
-    {OnChildInit,CondAfterInit,OnChildRun,ChildRun,},
-    {OnParMonitor,CondChildExit,OnParAfterRun,ParAfterRun,},
+FSMEdge transferTable[] = {
+    {
+        OnStart,
+        CondIsChild,
+        OnChildInit,
+        ChildInit,
+    },
+    {
+        OnStart,
+        CondIsPar,
+        OnParMonitor,
+        ParMonitor,
+    },
+    {
+        OnChildInit,
+        CondAfterInit,
+        OnChildRun,
+        ChildRun,
+    },
+    {
+        OnParMonitor,
+        CondChildExit,
+        OnParAfterRun,
+        ParAfterRun,
+    },
 };
 
 //状态机
-typedef struct FSM{
+typedef struct FSM
+{
     int curState;
-    FSMEdge*pFSMTable;
+    FSMEdge *pFSMTable;
     int size;
-}FSM;
+} FSM;
 
 //注册状态转移表
-void FSMRegister(FSM*pFSM,FSMEdge*pTable){
-    pFSM->pFSMTable=pTable;
-    pFSM->curState=OnStart;
-    pFSM->size=sizeof(transferTable)/sizeof(FSMEdge);
-    printf("FSM size:%d\n",pFSM->size);
+void FSMRegister(FSM *pFSM, FSMEdge *pTable)
+{
+    pFSM->pFSMTable = pTable;
+    pFSM->curState = OnStart;
+    pFSM->size = sizeof(transferTable) / sizeof(FSMEdge);
+    printf("FSM size:%d\n", pFSM->size);
 }
 
 //状态迁移
-void FSMTransfer(FSM*pFSM,int state){
-    pFSM->curState=state;
+void FSMTransfer(FSM *pFSM, int state)
+{
+    pFSM->curState = state;
 }
 
 //事件处理
-void FSMEventHandler(FSM*pFSM,int event,void*params){
-    FSMEdge*pActTable=pFSM->pFSMTable;
-    int isFind=0;
-    void(*func)(void*)=NULL;
-    int nextState=-1;
-    for(int i=0;i<pFSM->size;++i){
-        if(event==pActTable[i].event&&pFSM->curState==pActTable[i].curState){
-            isFind=1;
-            func=pActTable[i].fun;
-            nextState=pActTable[i].nextState;
+void FSMEventHandler(FSM *pFSM, int event, void *params)
+{
+    FSMEdge *pActTable = pFSM->pFSMTable;
+    int isFind = 0;
+    void (*func)(const void *) = NULL;
+    int nextState = -1;
+    for (int i = 0; i < pFSM->size; ++i)
+    {
+        if (event == pActTable[i].event && pFSM->curState == pActTable[i].curState)
+        {
+            isFind = 1;
+            func = pActTable[i].fun;
+            nextState = pActTable[i].nextState;
             break;
         }
     }
-    if(isFind){
-        FSMTransfer(pFSM,nextState);
-        if(func){//注意与切换状态的顺序
+    if (isFind)
+    {
+        FSMTransfer(pFSM, nextState);
+        if (func)
+        { //注意与切换状态的顺序
             func(params);
         }
-    }else{
+    }
+    else
+    {
         printf("Not find such event\n");
     }
 }
-
 
 //全局变量:状态机
 FSM fsm;
 
 //子进程初始化函数
-void ChildInit(void*params){
+void ChildInit(const void *params)
+{
     //设置资源限制
-    // setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 1000) / 1000);
-    // setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10240);
-    // setProgressLimit(RLIMIT_FSIZE, resouceConfig.disk + 10240);
-    // setProgressLimit(RLIMIT_CORE,0);
+    //setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 2000) / 1000);
+    //setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10240);
+    //setProgressLimit(RLIMIT_FSIZE, resouceConfig.disk + 10240);
+    //setProgressLimit(RLIMIT_CORE,0);
 
     //重定向IO
     const char *path = "/home/naoh/Program/go/src/sandbox/output";
@@ -215,90 +261,119 @@ void ChildInit(void*params){
     sprintf(cmd, "%s/a.out", path);
     struct InformationToFilter info;
     info.exeFileName = cmd;
-    printf("before:cmd:%s\n",cmd);
-    printf("info.exeFile:%s\n",info.exeFileName);
+    printf("before:cmd:%s\n", cmd);
+    printf("info.exeFile:%s\n", info.exeFileName);
     install_seccomp_filter(&info);
 
     // 修改uid和gid
     //setgid(65534);
     //setuid(65534);
 
-    FSMEventHandler(&fsm,CondAfterInit,NULL);
+    FSMEventHandler(&fsm, CondAfterInit, NULL);
 }
 
 //子进程运行函数
-void ChildRun(void*params){
+void ChildRun(const void *params)
+{
     const char *path = "/home/naoh/Program/go/src/sandbox/output";
     char cmd[100];
     sprintf(cmd, "%s/a.out", path);
     //执行命令
     char *argv[] = {cmd, NULL};
-    printf("now:cmd:%s\n",cmd);
+    printf("now:cmd:%s\n", cmd);
     int ret = execvp(cmd, argv);
     if (ret == -1)
         printf("execvp error");
 }
 
-
 //父进程监听函数
-void ParMonitor(void*params){
-    int fpid=childProgress.child_pid;
-    signal(SIGALRM, time_out_kill); //注册超时杀死进程事件
+void ParMonitor(const void *params)
+{
+    int fpid = childProgress.child_pid;
+    signal(SIGALRM, time_limit_kill); //注册超时杀死进程事件
     int runKillTime = (resouceConfig.time + 1000) / 1000;
     alarm(runKillTime);
     int childStatus = -1;
     struct rusage rusage;
     //获取子进程资源消耗情况
+    long maxMemUse = 0;
     while (1)
     {
-        int retCode = wait4(fpid, &childStatus, WNOHANG, &rusage);
+        int retCode = wait4(fpid, &childStatus, WUNTRACED, &rusage);
+        if (rusage.ru_minflt != 0)
+        {
+            printf("minflt:%ld\n", rusage.ru_minflt);
+        }
+        long nowMemUse = (long)rusage.ru_minflt * (sysconf(_SC_PAGE_SIZE) / KB_TO_BYTES); //缺页中断数量
+        if (nowMemUse > maxMemUse)
+        {
+            maxMemUse = nowMemUse;
+            if (maxMemUse > resouceConfig.memory)
+            {
+                memory_limit_kill();
+            }
+        }
+
         if (retCode != 0) //子进程状态发生了变化
         {
             clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,status is %d", fpid, retCode, childStatus);
             break;
         }
     }
-    struct ArgsParAfterRun args; 
-    args.childExitStatus=childStatus;
-    args.rusage=rusage;
-    FSMEventHandler(&fsm,CondChildExit,&args);
+
+    struct ArgsParAfterRun args;
+    args.childExitStatus = childStatus;
+    args.rusage = rusage;
+    args.maxMemUsage = maxMemUse;
+    FSMEventHandler(&fsm, CondChildExit, &args);
 }
 
-
 //运行结束函数OnParAfterRun
-void ParAfterRun(void*params){
-    assert(params!=NULL);
-    struct ArgsParAfterRun* args=(struct ArgsParAfterRun*)params;
+void ParAfterRun(const void *params)
+{
+    assert(params != NULL);
+    struct ArgsParAfterRun *args = (struct ArgsParAfterRun *)params;
+    printf("user memory usage:%ld KB\n", args->maxMemUsage);
+    if (args->maxMemUsage > resouceConfig.memory)
+    {
+        printf("MLE\n");
+        childProgress.judge_status = EXIT_JUDGE_MLE;
+        return;
+    }
 
     struct timeval user, system;
     user = args->rusage.ru_utime;
     system = args->rusage.ru_stime;
     long long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
-    printf("user time:%ld%ld\n", user.tv_sec, user.tv_usec / 1000);
-    printf("system time:%ld%ld\n", system.tv_sec, system.tv_usec / 1000);
-    printf("total UsedTime:%lld\n", usedTime);
+    printf("user time:%ld ms\n", user.tv_sec * 1000 + user.tv_usec / 1000);
+    printf("system time:%ld ms \n", system.tv_sec * 1000 + system.tv_usec / 1000);
+    printf("total UsedTime:%lld ms\n", usedTime);
     //TLE
     if (usedTime > resouceConfig.time)
     {
+        printf("TLE\n ");
         childProgress.judge_status = EXIT_JUDGE_TLE;
     }
     else if (args->childExitStatus == 0) //AC
     {
+        printf("AC\n");
         childProgress.judge_status = EXIT_JUDGE_AC;
     }
     else //RE
     {
+        printf("RE\n");
         childProgress.judge_status = EXIT_JUDGE_RE;
     }
 }
 
 //初始化资源配置函数
-void InitResource(){
+void InitResource()
+{
     init_log(UNIQ_LOG_ID, CLOG_INFO);
 
-    resouceConfig.disk = 10 * MB_TO_BYTES;
-    resouceConfig.memory = 1 * MB_TO_BYTES;
-    resouceConfig.time = 1000;
+    resouceConfig.disk = 65536;
+    resouceConfig.memory = 65536;
+    resouceConfig.time = 3000;
     resouceConfig.language = "g++";
 
     childProgress.child_pid = -1;
@@ -307,28 +382,33 @@ void InitResource(){
     childProgress.exit_code = 0;
 }
 
-
 //起始函数
-void Run(){
+void Run()
+{
     //注册状态机
-    FSMRegister(&fsm,transferTable);//注册转移表
-    fsm.curState=OnStart;
+    FSMRegister(&fsm, transferTable); //注册转移表
+    fsm.curState = OnStart;
 
     int fpid = fork();
-    if (fpid < 0){
+    if (fpid < 0)
+    {
         childProgress.system_status = EXIT_SYSTEM_ERROR;
         clog_error(CLOG(UNIQ_LOG_ID), "in runProgress fork error");
         printf("error\n");
-
-    }else if(fpid==0){
-        FSMEventHandler(&fsm,CondIsChild,NULL);
-    }else{
+    }
+    else if (fpid == 0)
+    {
+        FSMEventHandler(&fsm, CondIsChild, NULL);
+    }
+    else
+    {
         childProgress.child_pid = fpid;
-        FSMEventHandler(&fsm,CondIsPar,NULL);
+        FSMEventHandler(&fsm, CondIsPar, NULL);
     }
 }
 
-int main(){
+int main()
+{
     //初始化资源
     InitResource();
     //编译运行程序
