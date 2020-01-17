@@ -306,3 +306,19 @@
 2020-01-15 19:21:15 runner_FSM.c(107): INFO: the compile subprogress pid is 18677,retcode is 0
 2020-01-15 19:21:15 runner_FSM.c(375): INFO: begin to run exe file
 2020-01-15 19:21:16 runner_FSM.c(283): INFO: child pid is 18688,retCode is 18688,status is 0
+2020-01-15 20:27:56 runner_FSM.c(299): INFO: before compile
+2020-01-15 20:27:58 runner_FSM.c(108): INFO: the compile subprogress pid is 21946,retcode is 0
+2020-01-15 20:27:58 runner_FSM.c(302): INFO: begin to run exe file
+2020-01-15 20:27:59 runner_FSM.c(203): INFO: child pid is 21951,retCode is 21951,status is 0
+2020-01-15 20:29:35 runner_FSM.c(299): INFO: before compile
+2020-01-15 20:29:35 runner_FSM.c(108): INFO: the compile subprogress pid is 22223,retcode is 0
+2020-01-15 20:29:35 runner_FSM.c(302): INFO: begin to run exe file
+2020-01-15 20:29:36 runner_FSM.c(203): INFO: child pid is 22228,retCode is 22228,status is 0
+2020-01-15 21:28:00 runner_FSM.c(248): INFO: begin to run exe file
+2020-01-15 21:28:01 runner_FSM.c(152): INFO: child pid is 28456,retCode is 28456,status is 0
+2020-01-15 22:53:43 runner_FSM.c(248): INFO: begin to run exe file
+2020-01-15 22:53:44 runner_FSM.c(152): INFO: child pid is 4282,retCode is 4282,status is 0
+2020-01-17 10:11:42 runner_FSM.c(258): INFO: begin to run exe file
+2020-01-17 10:11:43 runner_FSM.c(153): INFO: child pid is 7913,retCode is 7913,status is 0
+2020-01-17 10:12:01 runner_FSM.c(258): INFO: begin to run exe file
+2020-01-17 10:12:02 runner_FSM.c(153): INFO: child pid is 7990,retCode is 7990,status is 0
