@@ -139,3 +139,31 @@ https://blog.csdn.net/fengxinlinux/article/details/53121287
 头文件保护只能保证一个文件中不会重复?
 头文件里存放函数定义存在问题，链接的时候
 两个文件，包含一份头文件。
+
+
+
+1,全局结构体
+写在*.h中,然后include "xxx.h"
+
+2,全局简单变量
+随便写在*.c,*.h都可以,其它*.c文件直接extern variable即可.
+
+3,通常来说,头文件里不应该有函数定义，变量定义。
+因为如果include　两次这个头文件，会报错重复定义。
+一般采取的操作,头文件xxx.h里放声明。eg:
+    extern int func();//函数(可省略)
+    struct FSM{};//结构体
+    extern struct FSM fsm;// 变量
+(全局函数的声明语句中，关键字extern可以省略，因为全局函数默认是extern类型的。)
+然后  xxx.c里面include xxx.h,然后定义 
+
+4,可以函数定义写在头文件中，需要额外操作。引入CLOG_MAIN宏
+void fun();
+#ifdef CLOG_MAIN 
+    void func(){
+
+    }
+#endif
+
+extern "C"{//c代码，用于c++里写c程序}
+static 限定在本文件中,

@@ -57,6 +57,28 @@ void memory_limit_kill()
     alarm(0);
 }
 
+//Runner起始函数
+void Run(const void *params)
+{
+    printf("begin to run\n");
+    int fpid = fork();
+    if (fpid < 0)
+    {
+        childProgress.system_status = EXIT_SYSTEM_ERROR;
+        clog_error(CLOG(UNIQ_LOG_ID), "in runProgress fork error");
+        printf("error\n");
+    }
+    else if (fpid == 0)
+    {
+        FSMEventHandler(&fsm, CondRunnerIsChild, NULL);
+    }
+    else
+    {
+        childProgress.child_pid = fpid;
+        FSMEventHandler(&fsm, CondRunnerIsPar, NULL);
+    }
+}
+
 //子进程初始化函数
 void ChildInit(const void *params)
 {
@@ -154,23 +176,26 @@ void ParAfterRun(const void *params)
 {
     assert(params != NULL);
     struct ArgsParAfterRun *args = (struct ArgsParAfterRun *)params;
-    printf("user memory usage:%ld KB\n", args->maxMemUsage);
-    if (args->maxMemUsage > resouceConfig.memory)
-    {
-        printf("MLE\n");
-        childProgress.judge_status = EXIT_JUDGE_MLE;
-        return;
-    }
+    childProgress.memory_use = args->maxMemUsage;
+    printf("user memory usage:%ld} KB\n", args->maxMemUsage);
+    clog_info(CLOG(UNIQ_LOG_ID), "user memory usage:%ld KB", args->maxMemUsage);
 
     struct timeval user, system;
     user = args->rusage.ru_utime;
     system = args->rusage.ru_stime;
-    long long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
+    long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
     printf("user time:%ld ms\n", user.tv_sec * 1000 + user.tv_usec / 1000);
     printf("system time:%ld ms \n", system.tv_sec * 1000 + system.tv_usec / 1000);
-    printf("total UsedTime:%lld ms\n", usedTime);
-    //TLE
-    if (usedTime > resouceConfig.time)
+    printf("total UsedTime:%ld ms\n", usedTime);
+    childProgress.time_cost = usedTime;
+    clog_info(CLOG(UNIQ_LOG_ID), "user time usage:%ld ms", usedTime);
+
+    if (args->maxMemUsage > resouceConfig.memory) //MLE
+    {
+        printf("MLE\n");
+        childProgress.judge_status = EXIT_JUDGE_MLE;
+    }
+    else if (usedTime > resouceConfig.time) //TLE
     {
         printf("TLE\n ");
         childProgress.judge_status = EXIT_JUDGE_TLE;
@@ -184,27 +209,5 @@ void ParAfterRun(const void *params)
     {
         printf("RE\n");
         childProgress.judge_status = EXIT_JUDGE_RE;
-    }
-}
-
-//Runner起始函数
-void Run(const void *params)
-{
-    printf("begin to run\n");
-    int fpid = fork();
-    if (fpid < 0)
-    {
-        childProgress.system_status = EXIT_SYSTEM_ERROR;
-        clog_error(CLOG(UNIQ_LOG_ID), "in runProgress fork error");
-        printf("error\n");
-    }
-    else if (fpid == 0)
-    {
-        FSMEventHandler(&fsm, CondRunnerIsChild, NULL);
-    }
-    else
-    {
-        childProgress.child_pid = fpid;
-        FSMEventHandler(&fsm, CondRunnerIsPar, NULL);
     }
 }

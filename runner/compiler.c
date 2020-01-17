@@ -31,7 +31,7 @@ void Compile(const void *params)
     int compilePid = fork();
     if (compilePid < 0)
     {
-        //
+        clog_error(CLOG(UNIQ_LOG_ID),"fork error\n");
     }
     else if (compilePid == 0) //вс╫ЬЁл
     {
@@ -47,9 +47,6 @@ void Compile(const void *params)
         int retCode = wait(&status);
         printf("UNIQ_LOG_ID:%d\n",UNIQ_LOG_ID);
         clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
-        printf("the compile subprogress pid is %d,retcode is %d\n", retCode, status);
         FSMEventHandler(&fsm, CondCompileFinish, NULL);
     }
-
-    //
 }
