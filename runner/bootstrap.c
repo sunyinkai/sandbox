@@ -3,6 +3,20 @@
 #include "fsm.h"
 #include "resource.h"
 #include "contants.h"
+#define CLOG_MAIN
+#include "clog.h"
+
+const int UNIQ_LOG_ID = 1;
+void init_log(int uinqId, enum clog_level level)
+{
+    int r;
+    r = clog_init_path(uinqId, "log.txt");
+    if (r != 0)
+    {
+        exit(1);
+    }
+    clog_set_level(uinqId, level);
+}
 
 void ProgramStart()
 {
@@ -20,10 +34,11 @@ void ProgramStart()
 void InitResource()
 {
 
+    init_log(UNIQ_LOG_ID, CLOG_INFO); //初始化日志信息
+
     //注册状态机
     FSMRegister(&fsm, transferTable); //注册转移表
     fsm.curState = OnProgramStart;    //在程序起始位置
-                                      // init_log(UNIQ_LOG_ID, CLOG_INFO);
 
     resouceConfig.disk = 65536;
     resouceConfig.memory = 65536;

@@ -13,12 +13,11 @@
 #include "fsm.h"
 #include "resource.h"
 #include "runner.h"
-#define CLOG_MAIN
-#include "logger.h"
-const int UNIQ_LOG_ID = 0;
+#include "clog.h"
 
 extern struct ResourceConfig resouceConfig;
 extern struct ChildProgresInfo childProgress;
+extern int UNIQ_LOG_ID;
 
 //设置成功返回0,否则返回-1
 int setProgressLimit(int resource, int val)

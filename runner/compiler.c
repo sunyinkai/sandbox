@@ -10,8 +10,9 @@
 #include "fsm.h"
 #include "resource.h"
 #include "compiler.h"
-extern int UNIQ_LOG_ID;
+#include "clog.h"
 
+extern int UNIQ_LOG_ID;
 // «∑Ò–Ë“™±‡“Î
 int needCompile(const char *s)
 {
@@ -44,7 +45,8 @@ void Compile(const void *params)
     {
         int status;
         int retCode = wait(&status);
-        //       clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
+        printf("UNIQ_LOG_ID:%d\n",UNIQ_LOG_ID);
+        clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
         printf("the compile subprogress pid is %d,retcode is %d\n", retCode, status);
         FSMEventHandler(&fsm, CondCompileFinish, NULL);
     }
