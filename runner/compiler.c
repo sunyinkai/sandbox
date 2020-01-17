@@ -10,7 +10,7 @@
 #include "fsm.h"
 #include "resource.h"
 #include "compiler.h"
-extern int  UNIQ_LOG_ID;
+extern int UNIQ_LOG_ID;
 
 //是否需要编译
 int needCompile(const char *s)
@@ -19,7 +19,7 @@ int needCompile(const char *s)
 }
 
 //编译程序
-void Compile(const void*params)
+void Compile(const void *params)
 {
     //如果不需要编译
     extern struct ResourceConfig resouceConfig;
@@ -44,9 +44,9 @@ void Compile(const void*params)
     {
         int status;
         int retCode = wait(&status);
- //       clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
+        //       clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
         printf("the compile subprogress pid is %d,retcode is %d\n", retCode, status);
-        FSMEventHandler(&fsm,CondCompileFinish,NULL);
+        FSMEventHandler(&fsm, CondCompileFinish, NULL);
     }
 
     //

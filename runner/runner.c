@@ -58,7 +58,6 @@ void memory_limit_kill()
     alarm(0);
 }
 
-
 //子进程初始化函数
 void ChildInit(const void *params)
 {
@@ -189,10 +188,8 @@ void ParAfterRun(const void *params)
     }
 }
 
-
-
 //Runner起始函数
-void Run(const void*params)
+void Run(const void *params)
 {
     printf("begin to run\n");
     int fpid = fork();
@@ -212,4 +209,3 @@ void Run(const void*params)
         FSMEventHandler(&fsm, CondRunnerIsPar, NULL);
     }
 }
-

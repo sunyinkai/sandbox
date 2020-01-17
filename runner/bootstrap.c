@@ -4,12 +4,15 @@
 #include "resource.h"
 #include "contants.h"
 
-
-void ProgramStart(){
-    if(needCompile(resouceConfig.language)){
-        FSMEventHandler(&fsm,CondNeedCompile,NULL);
-    }else{
-        FSMEventHandler(&fsm,CondNoNeedCompile,NULL);
+void ProgramStart()
+{
+    if (needCompile(resouceConfig.language))
+    {
+        FSMEventHandler(&fsm, CondNeedCompile, NULL);
+    }
+    else
+    {
+        FSMEventHandler(&fsm, CondNoNeedCompile, NULL);
     }
 }
 
@@ -19,8 +22,8 @@ void InitResource()
 
     //注册状态机
     FSMRegister(&fsm, transferTable); //注册转移表
-    fsm.curState = OnProgramStart;//在程序起始位置
-   // init_log(UNIQ_LOG_ID, CLOG_INFO);
+    fsm.curState = OnProgramStart;    //在程序起始位置
+                                      // init_log(UNIQ_LOG_ID, CLOG_INFO);
 
     resouceConfig.disk = 65536;
     resouceConfig.memory = 65536;
@@ -33,7 +36,8 @@ void InitResource()
     childProgress.exit_code = 0;
 }
 
-int main(){
+int main()
+{
     //初始化资源
     InitResource();
     ProgramStart();
