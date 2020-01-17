@@ -6,6 +6,13 @@
         "fcntl.h": "c",
         "seccomp.h": "c",
         "stdio.h": "c",
-        "wait.h": "c"
+        "wait.h": "c",
+        "iostream": "c",
+        "fsm.h": "c",
+        "syscall_monitor.h": "c",
+        "logger.h": "c",
+        "resource.h": "c",
+        "time.h": "c",
+        "clog.h": "c"
     }
 }
