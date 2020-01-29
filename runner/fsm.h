@@ -48,7 +48,7 @@ void ParAfterRun(const void *);
 void Init(const void *);
 
 //全部变量:转移表
-extern struct FSMEdge transferTable[7]; //这个地方要修改
+extern struct FSMEdge transferTable[]; //这个地方要修改
 
 //全局变量:状态机
 struct FSM

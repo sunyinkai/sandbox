@@ -17,6 +17,7 @@
 
 extern struct ResourceConfig resouceConfig;
 extern struct ChildProgresInfo childProgress;
+extern struct FileInfo fileInfo;
 extern int UNIQ_LOG_ID;
 
 //设置成功返回0,否则返回-1
@@ -89,11 +90,10 @@ void ChildInit(const void *params)
     //setProgressLimit(RLIMIT_CORE,0);
 
     //重定向IO
-    const char *path = "/home/naoh/Program/go/src/sandbox/output";
     char infileName[100];
     char outfileName[100];
-    sprintf(infileName, "%s/in.txt", path);
-    sprintf(outfileName, "%s/output.txt", path);
+    sprintf(infileName, "%s/%s", fileInfo.path, fileInfo.inputFileName);
+    sprintf(outfileName, "%s/%s", fileInfo.path, fileInfo.outputFileName);
     int read_fd = open(infileName, O_RDONLY);
     int filePerms = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; //创建的文件权限
     int openFlags = O_WRONLY | O_CREAT | O_TRUNC;
@@ -102,12 +102,8 @@ void ChildInit(const void *params)
     dup2(write_fd, STDOUT_FILENO);
     // //安装system_call filter
     char cmd[100];
-    sprintf(cmd, "%s/a.out", path);
-    struct InformationToFilter info;
-    info.exeFileName = cmd;
-    printf("before:cmd:%s\n", cmd);
-    printf("info.exeFile:%s\n", info.exeFileName);
-    install_seccomp_filter(&info);
+    sprintf(cmd, "%s/%s", fileInfo.path,fileInfo.exeFileName);
+    install_seccomp_filter();
 
     // 修改uid和gid
     //setgid(65534);
@@ -119,15 +115,14 @@ void ChildInit(const void *params)
 //子进程运行函数
 void ChildRun(const void *params)
 {
-    const char *path = "/home/naoh/Program/go/src/sandbox/output";
     char cmd[100];
-    sprintf(cmd, "%s/a.out", path);
+    sprintf(cmd, "%s/%s", fileInfo.path,fileInfo.exeFileName);
     //执行命令
     char *argv[] = {cmd, NULL};
-    printf("now:cmd:%s\n", cmd);
+    clog_info(CLOG(UNIQ_LOG_ID),"the child run cmd:%s",cmd);
     int ret = execvp(cmd, argv);
     if (ret == -1)
-        printf("execvp error");
+        clog_error(CLOG(UNIQ_LOG_ID),"execvp error");
 }
 
 //父进程监听函数
@@ -177,7 +172,7 @@ void ParAfterRun(const void *params)
     assert(params != NULL);
     struct ArgsParAfterRun *args = (struct ArgsParAfterRun *)params;
     childProgress.memory_use = args->maxMemUsage;
-    printf("user memory usage:%ld} KB\n", args->maxMemUsage);
+    printf("user memory usage:%ld KB\n", args->maxMemUsage);
     clog_info(CLOG(UNIQ_LOG_ID), "user memory usage:%ld KB", args->maxMemUsage);
 
     struct timeval user, system;

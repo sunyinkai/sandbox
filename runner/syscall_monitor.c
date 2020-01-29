@@ -2,7 +2,7 @@
 #include <seccomp.h>
 #include <stdio.h>
 
-void install_seccomp_filter(struct InformationToFilter *infoFile)
+void install_seccomp_filter()
 {
     int blackList[] = {
         //线程进程相关的系统调用

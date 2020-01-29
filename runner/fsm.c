@@ -1,6 +1,6 @@
 #include "fsm.h"
 
-struct FSMEdge transferTable[7] = {
+struct FSMEdge transferTable[] = {
     {
         OnProgramStart,
         CondNeedCompile,

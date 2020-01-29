@@ -31,13 +31,12 @@ void Compile(const void *params)
     int compilePid = fork();
     if (compilePid < 0)
     {
-        clog_error(CLOG(UNIQ_LOG_ID),"fork error\n");
+        clog_error(CLOG(UNIQ_LOG_ID), "fork error\n");
     }
     else if (compilePid == 0) //вс╫ЬЁл
     {
         char cmd[500];
-        const char *path = "/home/naoh/Program/go/src/sandbox/output";
-        sprintf(cmd, "g++ %s/a.cpp -lpthread -o %s/a.out", path, path);
+        sprintf(cmd, "g++ %s/%s -lpthread -o %s/%s", fileInfo.path, fileInfo.sourceFileName, fileInfo.path, fileInfo.exeFileName);
         char *argv[] = {"/bin/bash", "-c", cmd, NULL};
         execvp("/bin/bash", argv);
     }
@@ -45,7 +44,7 @@ void Compile(const void *params)
     {
         int status;
         int retCode = wait(&status);
-        printf("UNIQ_LOG_ID:%d\n",UNIQ_LOG_ID);
+        printf("UNIQ_LOG_ID:%d\n", UNIQ_LOG_ID);
         clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
         FSMEventHandler(&fsm, CondCompileFinish, NULL);
     }

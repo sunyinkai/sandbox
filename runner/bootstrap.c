@@ -42,13 +42,20 @@ void InitResource()
 
     resouceConfig.disk = 65536;
     resouceConfig.memory = 65536;
-    resouceConfig.time = 3000;
+    resouceConfig.time = 1000;
     resouceConfig.language = "g++";
 
     childProgress.child_pid = -1;
     childProgress.judge_status = EXIT_JUDGE_AC;
     childProgress.system_status = EXIT_SYSTEM_SUCCESS;
     childProgress.exit_code = 0;
+
+    //fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
+    fileInfo.path="/tmp/";
+    fileInfo.inputFileName = "in.txt";
+    fileInfo.outputFileName = "output.txt";
+    fileInfo.exeFileName = "a.out";
+    fileInfo.sourceFileName = "a.cpp";
 }
 
 int main()

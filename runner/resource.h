@@ -23,13 +23,16 @@ struct ChildProgresInfo
 //文件相关信息
 struct FileInfo
 {
+    char *sourceFileName; //源文件名称
+    char *path;           //文件所在目录
     char *inputFileName;  //输入文件名称 input.txt
     char *outputFileName; //输出文件名称　output.txt
     char *exeFileName;    //待执行文件名称 a.out
-    int __can_modify;
+    char *answerFileName; //问题答案文件
 };
 
 extern struct ResourceConfig resouceConfig;
 extern struct ChildProgresInfo childProgress;
+extern struct FileInfo fileInfo;
 
 #endif
