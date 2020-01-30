@@ -11,6 +11,7 @@
 #include "resource.h"
 #include "compiler.h"
 #include "clog.h"
+#include "contants.h"
 
 extern int UNIQ_LOG_ID;
 //是否需要编译
@@ -43,9 +44,15 @@ void Compile(const void *params)
     else
     {
         int status;
+        extern struct ChildProgresInfo childProgress;
         int retCode = wait(&status);
-        printf("UNIQ_LOG_ID:%d\n", UNIQ_LOG_ID);
         clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
+        if (retCode != 0)//如果编译进程有问题,这个地方需要进一步修改
+        {
+            childProgress.judge_status=EXIT_JUDGE_CE;
+            printf("CE\n");
+            return;
+        }
         FSMEventHandler(&fsm, CondCompileFinish, NULL);
     }
 }

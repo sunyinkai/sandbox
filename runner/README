@@ -95,16 +95,7 @@ vscode 命令行
 ctrl + ` 打开或者关闭默认终端
 ctrl + shift + ` 创建新终端
 
-
-
-
-==========
-ulimit
-https://www.ibm.com/developerworks/cn/linux/l-cn-ulimit/
-
-seccomp-bpf用法
-
-
+s
 
 =========
 strace工具帮助分析系统调用

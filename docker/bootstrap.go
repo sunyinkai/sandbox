@@ -33,23 +33,35 @@ func (ci *ContainerInstance) CreateNewContainer(ctx context.Context, image strin
 	if err != nil {
 		panic("unable to get to port")
 	}
-	var portBind nat.PortMap = nat.PortMap{containerPort: []nat.PortBinding{hostBinding}}
+	var portBind = nat.PortMap{containerPort: []nat.PortBinding{hostBinding}}
+
 	// container.config
 	containerConfig := &container.Config{
 		Image:           image,
 		Cmd:             []string{},
-		NetworkDisabled: true, //ban掉网络
+		AttachStdin:     true,
+		AttachStdout:    true,
+		AttachStderr:    true,
+		OpenStdin:       true,
+		User:            "65534", //uid
+		NetworkDisabled: true,    //ban掉网络
 	}
+
 	//host.config
 	hostConfig := &container.HostConfig{
 		PortBindings: portBind,
-		Resources:    container.Resources{Memory: 3e+7}, // 限制内存使用
+		Resources: container.Resources{
+			Memory:     3e+7,
+			MemorySwap: 3e+7,
+		}, // 限制内存使用
 	}
+
+	containerName := fmt.Sprintf("%d", time.Now().Unix())
 	cont, err := cli.ContainerCreate(
 		ctx,
 		containerConfig,
 		hostConfig,
-		nil, "")
+		nil, containerName)
 	if err != nil {
 		panic(err)
 	}
@@ -134,29 +146,36 @@ func (ci *ContainerInstance) CopyFileFromContainer(ctx context.Context, srcFile 
 	}
 	fmt.Printf("%+v", containerPathStatus)
 	var p []byte
-	readCloser.Read(p)
-	readCloser.Close()
+	_, _ = readCloser.Read(p)
+	_ = readCloser.Close()
 }
 
 func main() {
-	contId := "da3db1907d1e"
-	srcFile := "/home/naoh/Github/sandbox/output/a.py"
-	targetPath := "/"
+	var contId = ""
+	srcFile := "/home/naoh/Program/go/src/sandbox/runner/runner_FSM.out"
+	targetPath := "/tmp"
 	var cmdList = []string{
 		"whoami",
-		"ls -ltr",
 		"exit",
+		"whoami",
 	}
 
 	ctx := context.Background()
 	// 初始化containerInstance
-	ci := ContainerInstance{contId: contId}
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
+	ci := ContainerInstance{contId: ""}
+	if len(contId) == 0 {
+		contId, _ = ci.CreateNewContainer(ctx, "ubuntu:chmod")
+		ci.contId = contId
+		fmt.Printf("contId is %s", contId)
+	} else {
+		ci.contId = contId
+	}
 
 	ci.StartContainer(ctx)
-	fmt.Println(time.Now().Clock())
 	ci.CopyFileToContainer(ctx, srcFile, targetPath)
 	_ = ci.RunCmdInContainer(ctx, cmdList)
 	ci.StopContainer(ctx)
-	fmt.Println(time.Now().Clock())
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
 	fmt.Println("contId is ", contId)
 }
