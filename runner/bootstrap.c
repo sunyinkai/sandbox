@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "runner.h"
 #include "compiler.h"
 #include "fsm.h"
@@ -31,7 +32,8 @@ void ProgramStart()
 }
 
 //初始化资源配置函数
-void InitResource()
+// usage: ./runner_FSM.out laguange sourceFile time memory disk inputFile outputFile
+void InitResource(int argc, char *args[])
 {
 
     init_log(UNIQ_LOG_ID, CLOG_INFO); //初始化日志信息
@@ -40,9 +42,41 @@ void InitResource()
     FSMRegister(&fsm, transferTable); //注册转移表
     fsm.curState = OnProgramStart;    //在程序起始位置
 
-    resouceConfig.disk = 65536;
-    resouceConfig.memory = 65536;
+//从args获取变量
+#ifndef DEBUG
+    assert(argc == 8);
+    char *language = args[1];
+    char *sourceFile = args[2];
+    int runTime = atoi(args[3]);
+    long runMemory = atol(args[4]);
+    long runDisk = atol(args[5]);
+    char *inputFile = args[6];
+    char *outputFile = args[7];
+    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s", args[0], language,
+              sourceFile, runTime, runMemory, runDisk, inputFile, outputFile);
+
+    resouceConfig.time = runTime;
+    resouceConfig.memory = runMemory;
+    resouceConfig.disk = runDisk;
+    resouceConfig.language = language;
+
+    childProgress.child_pid = -1;
+    childProgress.judge_status = EXIT_JUDGE_AC;
+    childProgress.system_status = EXIT_SYSTEM_SUCCESS;
+    childProgress.exit_code = 0;
+
+    //fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
+    fileInfo.path = "/";
+    fileInfo.inputFileName = inputFile;
+    fileInfo.outputFileName = outputFile;
+    fileInfo.exeFileName = "abcxxxxx.out";
+    fileInfo.sourceFileName = sourceFile;
+#endif
+
+#ifdef DEBUG
     resouceConfig.time = 1000;
+    resouceConfig.memory = 65536;
+    resouceConfig.disk = 65536;
     resouceConfig.language = "g++";
 
     childProgress.child_pid = -1;
@@ -51,17 +85,20 @@ void InitResource()
     childProgress.exit_code = 0;
 
     //fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
-    fileInfo.path="/tmp/";
+    fileInfo.path = "/tmp/";
     fileInfo.inputFileName = "in.txt";
     fileInfo.outputFileName = "output.txt";
     fileInfo.exeFileName = "a.out";
     fileInfo.sourceFileName = "a.cpp";
+#endif
 }
 
-int main()
+// usage: ./runner_FSM.out sourceFile time memory disk inputFile outputFile language
+int main(int argc, char *args[])
 {
     //初始化资源
-    InitResource();
+    InitResource(argc, args);
+    //启动程序
     ProgramStart();
     return 0;
 }
