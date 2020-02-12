@@ -13,7 +13,8 @@
 #include "fsm.h"
 #include "resource.h"
 #include "runner.h"
-#include "clog.h"
+#include "include/clog.h"
+#include "include/cJSON.h"
 
 extern struct ResourceConfig resouceConfig;
 extern struct ChildProgresInfo childProgress;
@@ -102,7 +103,7 @@ void ChildInit(const void *params)
     dup2(write_fd, STDOUT_FILENO);
     // //安装system_call filter
     char cmd[100];
-    sprintf(cmd, "%s/%s", fileInfo.path,fileInfo.exeFileName);
+    sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
     install_seccomp_filter();
 
     // 修改uid和gid
@@ -116,13 +117,13 @@ void ChildInit(const void *params)
 void ChildRun(const void *params)
 {
     char cmd[100];
-    sprintf(cmd, "%s/%s", fileInfo.path,fileInfo.exeFileName);
+    sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
     //执行命令
     char *argv[] = {cmd, NULL};
-    clog_info(CLOG(UNIQ_LOG_ID),"the child run cmd:%s",cmd);
+    clog_info(CLOG(UNIQ_LOG_ID), "the child run cmd:%s", cmd);
     int ret = execvp(cmd, argv);
     if (ret == -1)
-        clog_error(CLOG(UNIQ_LOG_ID),"execvp error");
+        clog_error(CLOG(UNIQ_LOG_ID), "execvp error");
 }
 
 //父进程监听函数
@@ -166,6 +167,26 @@ void ParMonitor(const void *params)
     FSMEventHandler(&fsm, CondRunnerChildExit, &args);
 }
 
+static void dump2Json(long timeUsage, long memoryUsage, int systemStatus,
+                      int judgeStatus, const char *resultString)
+{
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, "timeUsage", timeUsage);
+    cJSON_AddNumberToObject(root, "memoryUsage", memoryUsage);
+    cJSON_AddNumberToObject(root, "systemStatus", systemStatus);
+    cJSON_AddNumberToObject(root, "judgeStatus", judgeStatus);
+    cJSON_AddStringToObject(root, "resultString", resultString);
+    char *formatedJson = cJSON_Print(root);
+    printf("%s\n", formatedJson);
+
+    cJSON_Delete(root);
+    if (formatedJson)
+    {
+        free(formatedJson);
+    }
+}
+
 //运行结束函数OnParAfterRun
 void ParAfterRun(const void *params)
 {
@@ -179,30 +200,34 @@ void ParAfterRun(const void *params)
     user = args->rusage.ru_utime;
     system = args->rusage.ru_stime;
     long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
+    childProgress.time_cost = usedTime;
     printf("user time:%ld ms\n", user.tv_sec * 1000 + user.tv_usec / 1000);
     printf("system time:%ld ms \n", system.tv_sec * 1000 + system.tv_usec / 1000);
     printf("total UsedTime:%ld ms\n", usedTime);
-    childProgress.time_cost = usedTime;
     clog_info(CLOG(UNIQ_LOG_ID), "user time usage:%ld ms", usedTime);
 
     if (args->maxMemUsage > resouceConfig.memory) //MLE
     {
-        printf("MLE\n");
         childProgress.judge_status = EXIT_JUDGE_MLE;
+        dump2Json(childProgress.time_cost, childProgress.memory_use,
+                  childProgress.system_status, childProgress.judge_status, "MLE");
     }
     else if (usedTime > resouceConfig.time) //TLE
     {
-        printf("TLE\n ");
         childProgress.judge_status = EXIT_JUDGE_TLE;
+        dump2Json(childProgress.time_cost, childProgress.memory_use,
+                  childProgress.system_status, childProgress.judge_status, "TLE");
     }
-    else if (args->childExitStatus == 0) //AC
+    else if (args->childExitStatus == 0) //AC,go to taker
     {
-        printf("AC\n");
         childProgress.judge_status = EXIT_JUDGE_AC;
+        dump2Json(childProgress.time_cost, childProgress.memory_use,
+                  childProgress.system_status, childProgress.judge_status, "AC");
     }
     else //RE
     {
-        printf("RE\n");
         childProgress.judge_status = EXIT_JUDGE_RE;
+        dump2Json(childProgress.time_cost, childProgress.memory_use,
+                  childProgress.system_status, childProgress.judge_status, "RE");
     }
 }

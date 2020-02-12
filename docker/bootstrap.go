@@ -85,7 +85,8 @@ func (ci *ContainerInstance) StartContainer(ctx context.Context) {
 
 //停止容器
 func (ci *ContainerInstance) StopContainer(ctx context.Context) {
-	if err := cli.ContainerStop(ctx, ci.contId, nil); err != nil {
+	timeout := time.Second * 0 //经过timeout发送kill信号
+	if err := cli.ContainerStop(ctx, ci.contId, &timeout); err != nil {
 		panic(err)
 	}
 }
@@ -156,7 +157,6 @@ func main() {
 	targetPath := "/tmp"
 	var cmdList = []string{
 		"whoami",
-		"exit",
 		"whoami",
 	}
 
@@ -175,6 +175,7 @@ func main() {
 	ci.StartContainer(ctx)
 	ci.CopyFileToContainer(ctx, srcFile, targetPath)
 	_ = ci.RunCmdInContainer(ctx, cmdList)
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + "  begin to stop container")
 	ci.StopContainer(ctx)
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
 	fmt.Println("contId is ", contId)

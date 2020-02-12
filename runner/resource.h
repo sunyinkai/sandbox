@@ -15,7 +15,7 @@ struct ChildProgresInfo
     int system_status; //系统状态
     int judge_status;  //测评机评测状态
     int child_pid;     //子进程pid
-    int exit_code;     //子进程退出状态码
+    int child_exit_code;     //子进程退出状态码
     long time_cost;    //时间使用量
     long memory_use;   //内存使用量
 };

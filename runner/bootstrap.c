@@ -1,3 +1,17 @@
+/*
+program input:laguange sourceFile time memory disk inputFile outputFile
+program output: a json file,format:
+sourceName.json
+{
+    timeUsage: .long
+    memoryUsage: .long
+    systemStatus: .int
+    judgeStatus:  .int
+    resultString: .string 
+}
+*/
+
+
 #include <assert.h>
 #include "runner.h"
 #include "compiler.h"
@@ -5,7 +19,7 @@
 #include "resource.h"
 #include "contants.h"
 #define CLOG_MAIN
-#include "clog.h"
+#include "include/clog.h"
 
 const int UNIQ_LOG_ID = 1;
 void init_log(int uinqId, enum clog_level level)
@@ -63,7 +77,7 @@ void InitResource(int argc, char *args[])
     childProgress.child_pid = -1;
     childProgress.judge_status = EXIT_JUDGE_AC;
     childProgress.system_status = EXIT_SYSTEM_SUCCESS;
-    childProgress.exit_code = 0;
+    childProgress.child_exit_code = 0;
 
     //fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
     fileInfo.path = "/";
@@ -82,10 +96,10 @@ void InitResource(int argc, char *args[])
     childProgress.child_pid = -1;
     childProgress.judge_status = EXIT_JUDGE_AC;
     childProgress.system_status = EXIT_SYSTEM_SUCCESS;
-    childProgress.exit_code = 0;
+    childProgress.child_exit_code = 0;
 
-    //fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
-    fileInfo.path = "/tmp/";
+    fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
+    //fileInfo.path = "/tmp/";
     fileInfo.inputFileName = "in.txt";
     fileInfo.outputFileName = "output.txt";
     fileInfo.exeFileName = "a.out";

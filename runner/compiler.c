@@ -10,7 +10,7 @@
 #include "fsm.h"
 #include "resource.h"
 #include "compiler.h"
-#include "clog.h"
+#include "include/clog.h"
 #include "contants.h"
 
 extern int UNIQ_LOG_ID;
