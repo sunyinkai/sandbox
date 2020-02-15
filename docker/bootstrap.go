@@ -165,7 +165,7 @@ func main() {
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
 	ci := ContainerInstance{contId: ""}
 	if len(contId) == 0 {
-		contId, _ = ci.CreateNewContainer(ctx, "ubuntu:chmod")
+		contId, _ = ci.CreateNewContainer(ctx, "tatsushid/tinycore:10.0-x86_64")
 		ci.contId = contId
 		fmt.Printf("contId is %s", contId)
 	} else {

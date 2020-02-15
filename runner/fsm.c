@@ -43,6 +43,50 @@ struct FSMEdge transferTable[] = {
         OnRunnerParAfterRun,
         ParAfterRun,
     },
+
+    //所有状态都可以直接转移到退出状态,即 *----CondProgramNeedToExit---->OnProgramEnd
+    {
+        OnProgramStart,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
+    {
+        OnCompilerCompile,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
+    {
+        OnRunnerStart,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
+    {
+        OnRunnerChildInit,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
+    {
+        OnRunnerParMonitor,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
+    {
+        OnRunnerChildRun,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
+    {
+        OnRunnerParAfterRun,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
 };
 
 //注册状态转移表

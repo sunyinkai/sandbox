@@ -1,4 +1,3 @@
-#include "contants.h"
 #include <stdio.h>
 #include <assert.h>
 #include <sys/wait.h>
@@ -9,17 +8,20 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/time.h>
+
 #include "syscall_monitor.h"
 #include "fsm.h"
 #include "resource.h"
 #include "runner.h"
+#include "checker.h"
 #include "include/clog.h"
 #include "include/cJSON.h"
+#include "contants.h"
 
 extern struct ResourceConfig resouceConfig;
-extern struct ChildProgresInfo childProgress;
 extern struct FileInfo fileInfo;
 extern int UNIQ_LOG_ID;
+static struct ChildProgressInfo childProgressInfo; //?
 
 //设置成功返回0,否则返回-1
 int setProgressLimit(int resource, int val)
@@ -33,13 +35,17 @@ int setProgressLimit(int resource, int val)
 //超时杀死程序
 void time_limit_kill(int sigId)
 {
-    if (childProgress.child_pid > 0)
+    if (childProgressInfo.child_pid > 0)
     {
-        int retCode = kill(childProgress.child_pid, SIGKILL);
+        int retCode = kill(childProgressInfo.child_pid, SIGKILL);
         if (retCode != 0)
         {
-            childProgress.system_status = EXIT_SYSTEM_ERROR;
+            struct ArgsDumpAndExit argsDumpAndExit;
+            ArgsDumpAndExitInit(&argsDumpAndExit);
+            argsDumpAndExit.systemStatus = EXIT_SYSTEM_ERROR;
             clog_error(CLOG(UNIQ_LOG_ID), "kill system call error\n");
+            FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
+            return;
         }
     }
     alarm(0);
@@ -47,13 +53,18 @@ void time_limit_kill(int sigId)
 
 void memory_limit_kill()
 {
-    if (childProgress.child_pid > 0)
+    if (childProgressInfo.child_pid > 0)
     {
-        int retCode = kill(childProgress.child_pid, SIGKILL);
+        int retCode = kill(childProgressInfo.child_pid, SIGKILL);
         if (retCode != 0)
         {
-            childProgress.system_status = EXIT_SYSTEM_ERROR;
+            struct ArgsDumpAndExit argsDumpAndExit;
+            ArgsDumpAndExitInit(&argsDumpAndExit);
+            argsDumpAndExit.systemStatus = EXIT_SYSTEM_ERROR;
+            argsDumpAndExit.reason = "kill system cal error";
             clog_error(CLOG(UNIQ_LOG_ID), "kill system call error\n");
+            FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
+            return;
         }
     }
     alarm(0);
@@ -66,9 +77,13 @@ void Run(const void *params)
     int fpid = fork();
     if (fpid < 0)
     {
-        childProgress.system_status = EXIT_SYSTEM_ERROR;
+        struct ArgsDumpAndExit argsDumpAndExit;
+        ArgsDumpAndExitInit(&argsDumpAndExit);
+        argsDumpAndExit.systemStatus = EXIT_SYSTEM_ERROR;
+        argsDumpAndExit.reason = "in runProgress fork error";
         clog_error(CLOG(UNIQ_LOG_ID), "in runProgress fork error");
-        printf("error\n");
+        FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
+        return;
     }
     else if (fpid == 0)
     {
@@ -76,7 +91,7 @@ void Run(const void *params)
     }
     else
     {
-        childProgress.child_pid = fpid;
+        childProgressInfo.child_pid = fpid;
         FSMEventHandler(&fsm, CondRunnerIsPar, NULL);
     }
 }
@@ -123,13 +138,15 @@ void ChildRun(const void *params)
     clog_info(CLOG(UNIQ_LOG_ID), "the child run cmd:%s", cmd);
     int ret = execvp(cmd, argv);
     if (ret == -1)
+    {
         clog_error(CLOG(UNIQ_LOG_ID), "execvp error");
+    }
 }
 
 //父进程监听函数
 void ParMonitor(const void *params)
 {
-    int fpid = childProgress.child_pid;
+    int fpid = childProgressInfo.child_pid;
     signal(SIGALRM, time_limit_kill); //注册超时杀死进程事件
     int runKillTime = (resouceConfig.time + 1000) / 1000;
     alarm(runKillTime);
@@ -167,32 +184,11 @@ void ParMonitor(const void *params)
     FSMEventHandler(&fsm, CondRunnerChildExit, &args);
 }
 
-static void dump2Json(long timeUsage, long memoryUsage, int systemStatus,
-                      int judgeStatus, const char *resultString)
-{
-    cJSON *root = cJSON_CreateObject();
-
-    cJSON_AddNumberToObject(root, "timeUsage", timeUsage);
-    cJSON_AddNumberToObject(root, "memoryUsage", memoryUsage);
-    cJSON_AddNumberToObject(root, "systemStatus", systemStatus);
-    cJSON_AddNumberToObject(root, "judgeStatus", judgeStatus);
-    cJSON_AddStringToObject(root, "resultString", resultString);
-    char *formatedJson = cJSON_Print(root);
-    printf("%s\n", formatedJson);
-
-    cJSON_Delete(root);
-    if (formatedJson)
-    {
-        free(formatedJson);
-    }
-}
-
 //运行结束函数OnParAfterRun
 void ParAfterRun(const void *params)
 {
     assert(params != NULL);
     struct ArgsParAfterRun *args = (struct ArgsParAfterRun *)params;
-    childProgress.memory_use = args->maxMemUsage;
     printf("user memory usage:%ld KB\n", args->maxMemUsage);
     clog_info(CLOG(UNIQ_LOG_ID), "user memory usage:%ld KB", args->maxMemUsage);
 
@@ -200,34 +196,42 @@ void ParAfterRun(const void *params)
     user = args->rusage.ru_utime;
     system = args->rusage.ru_stime;
     long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
-    childProgress.time_cost = usedTime;
     printf("user time:%ld ms\n", user.tv_sec * 1000 + user.tv_usec / 1000);
     printf("system time:%ld ms \n", system.tv_sec * 1000 + system.tv_usec / 1000);
     printf("total UsedTime:%ld ms\n", usedTime);
     clog_info(CLOG(UNIQ_LOG_ID), "user time usage:%ld ms", usedTime);
 
+    struct ArgsDumpAndExit argsDumpAndExit;
+    ArgsDumpAndExitInit(&argsDumpAndExit);
+    argsDumpAndExit.timeUsage = usedTime;
+    argsDumpAndExit.memoryUsage = args->maxMemUsage;
+    argsDumpAndExit.systemStatus = EXIT_SYSTEM_SUCCESS;
     if (args->maxMemUsage > resouceConfig.memory) //MLE
     {
-        childProgress.judge_status = EXIT_JUDGE_MLE;
-        dump2Json(childProgress.time_cost, childProgress.memory_use,
-                  childProgress.system_status, childProgress.judge_status, "MLE");
+        argsDumpAndExit.judgeStatus = EXIT_JUDGE_MLE;
+        argsDumpAndExit.resultString = "MLE";
+        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        return;
     }
     else if (usedTime > resouceConfig.time) //TLE
     {
-        childProgress.judge_status = EXIT_JUDGE_TLE;
-        dump2Json(childProgress.time_cost, childProgress.memory_use,
-                  childProgress.system_status, childProgress.judge_status, "TLE");
+        argsDumpAndExit.judgeStatus = EXIT_JUDGE_TLE;
+        argsDumpAndExit.resultString = "TLE";
+        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        return;
     }
     else if (args->childExitStatus == 0) //AC,go to taker
     {
-        childProgress.judge_status = EXIT_JUDGE_AC;
-        dump2Json(childProgress.time_cost, childProgress.memory_use,
-                  childProgress.system_status, childProgress.judge_status, "AC");
+        argsDumpAndExit.judgeStatus = EXIT_JUDGE_AC;
+        argsDumpAndExit.resultString = "AC";
+        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        return;
     }
     else //RE
     {
-        childProgress.judge_status = EXIT_JUDGE_RE;
-        dump2Json(childProgress.time_cost, childProgress.memory_use,
-                  childProgress.system_status, childProgress.judge_status, "RE");
+        argsDumpAndExit.judgeStatus = EXIT_JUDGE_RE;
+        argsDumpAndExit.resultString = "RE";
+        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        return;
     }
 }

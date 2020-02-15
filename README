@@ -1,0 +1,13 @@
+A safe sandbox
+思路
+step1: 领取一个任务 </br>
+step2: 编译源代码   </br>
+step3: 在给定的资源下运行 </br>
+step4: 与标准答案进行比较，返回结果 </br>
+
+
+结构
+-----  runner: 内部判题部分，组织结构为状态机
+  ------- include: 引用的代码,如cJSON,clog </br>
+----   docker: docker管理部分,将input,output传入进去
+----   build_image:构建镜像,dockerfile

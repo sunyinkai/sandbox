@@ -21,18 +21,20 @@ enum RunnerState
     OnRunnerParMonitor,
     OnRunnerChildRun,
     OnRunnerParAfterRun,
+    OnProgramEnd,
 };
 
 //事件
 enum Event
 {
-    CondNeedCompile = 0, //事件:需要编译
-    CondNoNeedCompile,   //事件:不需要编译
-    CondCompileFinish,   //事件:编译完成
-    CondRunnerIsPar,     //事件:是父进程
-    CondRunnerIsChild,   //事件:是子进程
-    CondRunnerAfterInit, //事件:子进程初始化完毕
-    CondRunnerChildExit, //事件:子进程退出
+    CondNeedCompile = 0,   //事件:需要编译
+    CondNoNeedCompile,     //事件:不需要编译
+    CondCompileFinish,     //事件:编译完成
+    CondRunnerIsPar,       //事件:是父进程
+    CondRunnerIsChild,     //事件:是子进程
+    CondRunnerAfterInit,   //事件:子进程初始化完毕
+    CondRunnerChildExit,   //事件:子进程退出
+    CondProgramNeedToExit, //事件:进程需要退出
 };
 
 //函数
@@ -47,8 +49,10 @@ void ChildRun(const void *);
 void ParAfterRun(const void *);
 void Init(const void *);
 
+void DumpAndExit(const void *);
+
 //全部变量:转移表
-extern struct FSMEdge transferTable[]; //这个地方要修改
+extern struct FSMEdge transferTable[];
 
 //全局变量:状态机
 struct FSM

@@ -8,13 +8,14 @@ sourceName.json
     systemStatus: .int
     judgeStatus:  .int
     resultString: .string 
+    reason: .string
 }
 */
 
-
 #include <assert.h>
-#include "runner.h"
 #include "compiler.h"
+#include "runner.h"
+#include "checker.h"
 #include "fsm.h"
 #include "resource.h"
 #include "contants.h"
@@ -74,11 +75,6 @@ void InitResource(int argc, char *args[])
     resouceConfig.disk = runDisk;
     resouceConfig.language = language;
 
-    childProgress.child_pid = -1;
-    childProgress.judge_status = EXIT_JUDGE_AC;
-    childProgress.system_status = EXIT_SYSTEM_SUCCESS;
-    childProgress.child_exit_code = 0;
-
     //fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
     fileInfo.path = "/";
     fileInfo.inputFileName = inputFile;
@@ -92,11 +88,6 @@ void InitResource(int argc, char *args[])
     resouceConfig.memory = 65536;
     resouceConfig.disk = 65536;
     resouceConfig.language = "g++";
-
-    childProgress.child_pid = -1;
-    childProgress.judge_status = EXIT_JUDGE_AC;
-    childProgress.system_status = EXIT_SYSTEM_SUCCESS;
-    childProgress.child_exit_code = 0;
 
     fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
     //fileInfo.path = "/tmp/";

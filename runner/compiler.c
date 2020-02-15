@@ -10,6 +10,7 @@
 #include "fsm.h"
 #include "resource.h"
 #include "compiler.h"
+#include "checker.h"
 #include "include/clog.h"
 #include "contants.h"
 
@@ -44,15 +45,19 @@ void Compile(const void *params)
     else
     {
         int status;
-        extern struct ChildProgresInfo childProgress;
         int retCode = wait(&status);
         clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
         if (status != 0) //如果编译进程有问题,这个地方需要进一步修改
         {
-            childProgress.judge_status = EXIT_JUDGE_CE;
-            printf("CE\n");
+            struct ArgsDumpAndExit argsDumpAndExit;
+            ArgsDumpAndExitInit(&argsDumpAndExit);
+            argsDumpAndExit.judgeStatus = EXIT_JUDGE_CE;
+            argsDumpAndExit.resultString = "CE";
+            printf("curState:%d\n", fsm.curState);
+            FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
             return;
         }
         FSMEventHandler(&fsm, CondCompileFinish, NULL);
+        return;
     }
 }

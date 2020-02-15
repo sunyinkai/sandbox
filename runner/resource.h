@@ -9,17 +9,6 @@ struct ResourceConfig
     char *language; //语言
 };
 
-//子进程相关信息
-struct ChildProgresInfo
-{
-    int system_status; //系统状态
-    int judge_status;  //测评机评测状态
-    int child_pid;     //子进程pid
-    int child_exit_code;     //子进程退出状态码
-    long time_cost;    //时间使用量
-    long memory_use;   //内存使用量
-};
-
 //文件相关信息
 struct FileInfo
 {
@@ -32,7 +21,6 @@ struct FileInfo
 };
 
 extern struct ResourceConfig resouceConfig;
-extern struct ChildProgresInfo childProgress;
 extern struct FileInfo fileInfo;
 
 #endif

@@ -18,4 +18,10 @@ extern void ChildRun(const void *params);
 extern void ParMonitor(const void *params);
 extern void ParAfterRun(const void *params);
 
+//子进程相关信息
+struct ChildProgressInfo
+{
+    int child_pid;       //子进程pid
+    int child_exit_code; //子进程退出状态码
+};
 #endif
