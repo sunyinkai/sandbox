@@ -99,12 +99,12 @@ void InitResource(int argc, char *args[])
     resouceConfig.language = "g++";
 
     fileInfo.path = "/";
-    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/in.txt";
-    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/output.txt";
-    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a_runner_debug.out";
-    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.cpp";
+    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/py_in.txt";
+    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/py_output.txt";
+    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a.py";
+    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.py";
 
-    LoadConfig(&configNode, "g++");
+    LoadConfig(&configNode, "");
     printf("%s %d %s %s\n", configNode.language, configNode.needCompile,
            configNode.compileArgs, configNode.runArgs);
 #endif

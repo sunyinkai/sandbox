@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <errno.h>
 
 #include "syscall_monitor.h"
 #include "fsm.h"
@@ -117,9 +118,9 @@ void ChildInit(const void *params)
     dup2(read_fd, STDIN_FILENO);
     dup2(write_fd, STDOUT_FILENO);
     // //安装system_call filter
-    char cmd[100];
-    sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
-    install_seccomp_filter();
+    //char cmd[100];
+    //sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
+    //install_seccomp_filter();
 
     // 修改uid和gid
     setgid(65534);
@@ -133,13 +134,15 @@ void ChildRun(const void *params)
 {
     char *tmp = ReplaceFlag(configNode.runArgs, "$SRC", fileInfo.sourceFileName);
     char *cmd = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
-    //执行命令
-    char *argv[] = {cmd, NULL};
+    //执行命令,?
+    char *argv[] = {"/bin/bash","-c",cmd, NULL};
     clog_info(CLOG(UNIQ_LOG_ID), "the child run cmd:%s", cmd);
-    int ret = execvp(cmd, argv);
+    int ret = execvp("/bin/bash", argv);
     if (ret == -1)
     {
-        clog_error(CLOG(UNIQ_LOG_ID), "execvp error");
+        extern int errno;
+        clog_error(CLOG(UNIQ_LOG_ID), "execvp error,errno:%d,errnoinfo:%s", errno, strerror(errno));
+        exit(1);//这里会导致结果RE而不是system error
     }
 }
 

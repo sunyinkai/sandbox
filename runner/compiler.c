@@ -18,7 +18,7 @@ extern int UNIQ_LOG_ID;
 //是否需要编译
 int needCompile(const char *s)
 {
-    return 1;
+    return configNode.needCompile;
 }
 
 //编译程序
