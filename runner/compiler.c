@@ -37,8 +37,10 @@ void Compile(const void *params)
     }
     else if (compilePid == 0) //вс╫ЬЁл
     {
-        char cmd[500];
-        sprintf(cmd, "g++ %s/%s -lpthread -o %s/%s", fileInfo.path, fileInfo.sourceFileName, fileInfo.path, fileInfo.exeFileName);
+        char *tmp = ReplaceFlag(configNode.compileArgs, "$SRC", fileInfo.sourceFileName);
+        char *cmd = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
+        clog_info(CLOG(UNIQ_LOG_ID), "the compile cmd is %s\n", cmd);
+        // need free tmp and cmd?
         char *argv[] = {"/bin/bash", "-c", cmd, NULL};
         execvp("/bin/bash", argv);
     }
@@ -53,7 +55,6 @@ void Compile(const void *params)
             ArgsDumpAndExitInit(&argsDumpAndExit);
             argsDumpAndExit.judgeStatus = EXIT_JUDGE_CE;
             argsDumpAndExit.resultString = "CE";
-            printf("curState:%d\n", fsm.curState);
             FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
             return;
         }

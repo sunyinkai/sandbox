@@ -1,5 +1,5 @@
 /*
-program input:laguange sourceFile time memory disk inputFile outputFile
+program input:laguange sourceFile time memory disk sysInputFile usrOutputFile
 program output: a json file,format:
 sourceName.json
 {
@@ -47,7 +47,8 @@ void ProgramStart()
 }
 
 //初始化资源配置函数
-// usage: ./runner_FSM.out laguange sourceFile time memory disk inputFile outputFile
+// usage: ./runner_FSM.out laguange sourceFile time memory disk
+//                   exeFile sysInputFile usrOutputFile
 void InitResource(int argc, char *args[])
 {
 
@@ -59,28 +60,36 @@ void InitResource(int argc, char *args[])
 
 //从args获取变量
 #ifndef DEBUG
-    assert(argc == 8);
+    if (argc != 9)
+    {
+        printf("usage: ./runner.out language sourceFile time memory disk exeFile \
+ sysInputFile usroutputFile\n");
+        printf("time: ms  , memory: KB , disk: KB\n");
+        assert(1);
+    }
     char *language = args[1];
     char *sourceFile = args[2];
     int runTime = atoi(args[3]);
     long runMemory = atol(args[4]);
     long runDisk = atol(args[5]);
-    char *inputFile = args[6];
-    char *outputFile = args[7];
-    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s", args[0], language,
-              sourceFile, runTime, runMemory, runDisk, inputFile, outputFile);
+    char *exeFile = args[6];
+    char *sysInputFile = args[7];
+    char *usrOutputFile = args[8];
+    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s,%s", args[0], language,
+              sourceFile, runTime, runMemory, runDisk, exeFile, sysInputFile, usrOutputFile);
 
     resouceConfig.time = runTime;
     resouceConfig.memory = runMemory;
     resouceConfig.disk = runDisk;
     resouceConfig.language = language;
 
-    //fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
     fileInfo.path = "/";
-    fileInfo.inputFileName = inputFile;
-    fileInfo.outputFileName = outputFile;
-    fileInfo.exeFileName = "abcxxxxx.out";
+    fileInfo.sysInputFileName = sysInputFile;
+    fileInfo.usrOutputFileName = usrOutputFile;
+    fileInfo.exeFileName = exeFile;
     fileInfo.sourceFileName = sourceFile;
+
+    LoadConfig(&configNode, resouceConfig.language);
 #endif
 
 #ifdef DEBUG
@@ -89,19 +98,20 @@ void InitResource(int argc, char *args[])
     resouceConfig.disk = 65536;
     resouceConfig.language = "g++";
 
-    fileInfo.path = "/home/naoh/Program/go/src/sandbox/output";
-    //fileInfo.path = "/tmp/";
-    fileInfo.inputFileName = "in.txt";
-    fileInfo.outputFileName = "output.txt";
-    fileInfo.exeFileName = "a.out";
-    fileInfo.sourceFileName = "a.cpp";
+    fileInfo.path = "/";
+    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/in.txt";
+    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/output.txt";
+    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a_runner_debug.out";
+    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.cpp";
+
+    LoadConfig(&configNode, "g++");
+    printf("%s %d %s %s\n", configNode.language, configNode.needCompile,
+           configNode.compileArgs, configNode.runArgs);
 #endif
 }
 
-// usage: ./runner_FSM.out sourceFile time memory disk inputFile outputFile language
 int main(int argc, char *args[])
 {
-    //初始化资源
     InitResource(argc, args);
     //启动程序
     ProgramStart();

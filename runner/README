@@ -172,3 +172,7 @@ C++ 初始化列表，让初始化后只读
 域:ps -Z        对进程进行限制
 上下文: ls -Z   对系统资源进行限制
 
+
+//
+open("hello.json", O_WRONLY|O_CREAT|O_TRUNC, 0666) = -1 EACCES (Permission denied)
+hello.json如果存在，就不会报错，否则就会报错

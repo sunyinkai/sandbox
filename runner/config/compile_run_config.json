@@ -1,7 +1,0 @@
-{
-    "g++":{
-        "needCompile":1,
-        "compile_args":"g++ $src_path -lpthread  -o $target_path",
-        "run_args":"$target_path"
-    }
-}

@@ -1,0 +1,22 @@
+{
+    "language": [
+        {
+            "language": "python3",
+            "needCompile": 0,
+            "compileArgs": " ",
+            "runArgs": "python3 $SRC"
+        },
+        {
+            "language": "python2",
+            "needCompile": 0,
+            "compileArgs": " ",
+            "runArgs": "python2 $SRC"
+        },
+        {
+            "language": "g++",
+            "needCompile": 1,
+            "compileArgs": "g++ $SRC -lpthread  -o $EXE",
+            "runArgs": "$EXE"
+        }
+    ]
+}

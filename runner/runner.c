@@ -108,8 +108,8 @@ void ChildInit(const void *params)
     //重定向IO
     char infileName[100];
     char outfileName[100];
-    sprintf(infileName, "%s/%s", fileInfo.path, fileInfo.inputFileName);
-    sprintf(outfileName, "%s/%s", fileInfo.path, fileInfo.outputFileName);
+    sprintf(infileName, "%s/%s", fileInfo.path, fileInfo.sysInputFileName);
+    sprintf(outfileName, "%s/%s", fileInfo.path, fileInfo.usrOutputFileName);
     int read_fd = open(infileName, O_RDONLY);
     int filePerms = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; //创建的文件权限
     int openFlags = O_WRONLY | O_CREAT | O_TRUNC;
@@ -122,8 +122,8 @@ void ChildInit(const void *params)
     install_seccomp_filter();
 
     // 修改uid和gid
-    //setgid(65534);
-    //setuid(65534);
+    setgid(65534);
+    setuid(65534);
 
     FSMEventHandler(&fsm, CondRunnerAfterInit, NULL);
 }
@@ -131,8 +131,8 @@ void ChildInit(const void *params)
 //子进程运行函数
 void ChildRun(const void *params)
 {
-    char cmd[100];
-    sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
+    char *tmp = ReplaceFlag(configNode.runArgs, "$SRC", fileInfo.sourceFileName);
+    char *cmd = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
     //执行命令
     char *argv[] = {cmd, NULL};
     clog_info(CLOG(UNIQ_LOG_ID), "the child run cmd:%s", cmd);

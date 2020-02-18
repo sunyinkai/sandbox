@@ -55,6 +55,7 @@ int compare(const char *source, const char *target)
     free(line2);
     return isSame ? SAME : DIFF;
 }
+
 void ArgsDumpAndExitInit(struct ArgsDumpAndExit *args)
 {
     args->timeUsage = 0;

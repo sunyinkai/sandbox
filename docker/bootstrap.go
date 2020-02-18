@@ -43,13 +43,16 @@ func (ci *ContainerInstance) CreateNewContainer(ctx context.Context, image strin
 		AttachStdout:    true,
 		AttachStderr:    true,
 		OpenStdin:       true,
-		User:            "65534", //uid
-		NetworkDisabled: true,    //ban掉网络
+		User:            "0",  //uid
+		NetworkDisabled: true, //ban掉网络
 	}
 
 	//host.config
+	availableCap := []string{"CAP_SETUID", "CAP_SETGID", "CAP_CHOWN"}
+
 	hostConfig := &container.HostConfig{
 		PortBindings: portBind,
+		Capabilities: availableCap,
 		Resources: container.Resources{
 			Memory:     3e+7,
 			MemorySwap: 3e+7,
@@ -153,8 +156,8 @@ func (ci *ContainerInstance) CopyFileFromContainer(ctx context.Context, srcFile 
 
 func main() {
 	var contId = ""
-	srcFile := "/home/naoh/Program/go/src/sandbox/runner/runner_FSM.out"
-	targetPath := "/tmp"
+	srcFile := "/home/naoh/Program/go/src/sandbox/output/large.in"
+	targetPath := "/home/sandbox"
 	var cmdList = []string{
 		"whoami",
 		"whoami",
@@ -165,7 +168,7 @@ func main() {
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
 	ci := ContainerInstance{contId: ""}
 	if len(contId) == 0 {
-		contId, _ = ci.CreateNewContainer(ctx, "tatsushid/tinycore:10.0-x86_64")
+		contId, _ = ci.CreateNewContainer(ctx, "ubuntu:sandbox")
 		ci.contId = contId
 		fmt.Printf("contId is %s", contId)
 	} else {
@@ -173,7 +176,9 @@ func main() {
 	}
 
 	ci.StartContainer(ctx)
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + "begin to copyfile")
 	ci.CopyFileToContainer(ctx, srcFile, targetPath)
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + "copy file end")
 	_ = ci.RunCmdInContainer(ctx, cmdList)
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + "  begin to stop container")
 	ci.StopContainer(ctx)
