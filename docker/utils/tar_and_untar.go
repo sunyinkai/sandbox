@@ -4,7 +4,9 @@ import (
 	"archive/tar"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
+	"time"
 )
 
 func TarFile(srcFile string, dstFile string) error {
@@ -37,4 +39,15 @@ func TarFile(srcFile string, dstFile string) error {
 	}
 	fmt.Println("write bytes Num", bytesNum)
 	return nil
+}
+
+func GenRandomStr(l int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyz"
+	bytes := []byte(str)
+	var result []byte
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < l; i++ {
+		result = append(result, bytes[r.Intn(len(bytes))])
+	}
+	return string(result)
 }

@@ -1,6 +1,0 @@
-程序的入口是main.go，它需要读取第一个参数。如果该参数是‘run’，
-那么就运行parent()方法，如果是‘child’则运行child()方法。
-parent方法将执行‘/proc/self/exe’，这是一个特殊文件，它包含了当前可执行文件的一个内存镜像。
-换句话说，我们将重新调用这个程序本身，将‘child’作为第一个参数进行传递。
-
-重新挂载: sudo mount -o remount,rw /sys/fs/cgroup

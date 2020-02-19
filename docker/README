@@ -1,0 +1,3 @@
+Q:想在bootstrap读取config.json将其Unmarshall,然后将数据作为参数传递给container_manage
+这样可能会导致循环引用，解决方法，创建一个第三方包，然后bootstrap和container_manage分别引用它。
+Q:重定向文件后,setuid为什么可行

@@ -42,7 +42,13 @@ void Compile(const void *params)
         clog_info(CLOG(UNIQ_LOG_ID), "the compile cmd is %s\n", cmd);
         // need free tmp and cmd?
         char *argv[] = {"/bin/bash", "-c", cmd, NULL};
-        execvp("/bin/bash", argv);
+        int ret = execvp("/bin/bash", argv);
+        if (ret == -1)
+        {
+            extern int errno;
+            clog_error(CLOG(UNIQ_LOG_ID), "execvp error,errno:%d,errnoinfo:%s", errno, strerror(errno));
+            exit(1); //这里会导致结果RE而不是system erro
+        }
     }
     else
     {

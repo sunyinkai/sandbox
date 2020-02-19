@@ -90,6 +90,8 @@ void InitResource(int argc, char *args[])
     fileInfo.sourceFileName = sourceFile;
 
     LoadConfig(&configNode, resouceConfig.language);
+    clog_info(CLOG(UNIQ_LOG_ID), "the language:%s,needCompile:%d,compileArgs:%s,runArgs:%s",
+              configNode.language, configNode.needCompile, configNode.compileArgs, configNode.runArgs);
 #endif
 
 #ifdef DEBUG
