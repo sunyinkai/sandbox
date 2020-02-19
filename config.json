@@ -1,5 +1,0 @@
-{
-    "language":{
-        "cpp":"g++ -std=c++11 -g a.cpp -o a.out"
-    }
-}

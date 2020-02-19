@@ -1,8 +1,30 @@
-runner_FSM_DEBUG: runner.c syscall_monitor.c resource.c compiler.c fsm.c  bootstrap.c syscall_monitor.h resource.h fsm.h compiler.h runner.h  include/cJSON.c include/cJSON.h  checker.c checker.h 
-	gcc runner.c syscall_monitor.c resource.c compiler.c fsm.c bootstrap.c syscall_monitor.h fsm.h resource.h compiler.h runner.h include/cJSON.c include/cJSON.h checker.c checker.h  -static -D DEBUG -o runner_FSM_debug.out -lseccomp
+runner: runner.o compiler.o checker.o json.o syscall_monitor.o resource.o fsm.o  bootstrap.o  
+	gcc checker.o compiler.o runner.o json.o syscall_monitor.o resource.o  fsm.o bootstrap.o  -static -o runner_FSM_debug.out -lseccomp
+	rm *.o
 
-runner_FSM_DOCKER: runner.c syscall_monitor.c resource.c compiler.c fsm.c  bootstrap.c syscall_monitor.h resource.h fsm.h compiler.h runner.h  include/cJSON.c include/cJSON.h  checker.c checker.h 
-	gcc runner.c syscall_monitor.c resource.c compiler.c fsm.c bootstrap.c syscall_monitor.h fsm.h resource.h compiler.h runner.h include/cJSON.c include/cJSON.h checker.c checker.h  -static -D DEBUG -o runner_FSM_docker.out -lseccomp
+runner.o: runner.c  runner.h 
+	gcc -c runner.c  -o runner.o
+
+compiler.o:compiler.c compiler.h 
+	gcc -c compiler.c  -o compiler.o
+
+checker.o: checker.c  checker.h 
+	gcc -c checker.c  -o checker.o
+
+json.o :include/cJSON.c include/cJSON.h
+	gcc -c include/cJSON.c -o json.o
+
+syscall_monitor.o: syscall_monitor.c syscall_monitor.h
+	gcc -c syscall_monitor.c -o syscall_monitor.o
+
+resource.o :resource.c resource.h
+	gcc -c resource.c -o resource.o
+
+fsm.o:fsm.c fsm.h
+	gcc -c fsm.c -o fsm.o
+
+bootstrap.o:bootstrap.c
+	gcc -c bootstrap.c -D DEBUG -o bootstrap.o
 
 clean:
 	/bin/rm -rf runner

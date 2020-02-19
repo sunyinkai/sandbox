@@ -52,6 +52,7 @@ void time_limit_kill(int sigId)
     alarm(0);
 }
 
+//errno 展示原因
 void memory_limit_kill()
 {
     if (childProgressInfo.child_pid > 0)

@@ -6,9 +6,10 @@ RUN apt-get update && \
     apt-get -y install g++ && \
     apt-get -y install python3.7 && \
     apt-get -y install libcap2-bin && \ 
-    mkdir -p /home/sandbox  && \
+    apt-get -y install golang && \
+    mkdir -p /home/sandbox && \
     rm -rf /var/lib/vapt/lists/* 
-#  groupadd -g  2047 boxtaker && \
-#    useradd  -r -u 2047 -g boxtaker boxtaker 
+
 COPY  ./runner_FSM_docker.out  /home/sandbox
+COPY ./config /home/sandbox/config
 ENV WELCOME "wlecome to my docker" 

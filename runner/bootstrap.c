@@ -96,15 +96,15 @@ void InitResource(int argc, char *args[])
     resouceConfig.time = 1000;
     resouceConfig.memory = 65536;
     resouceConfig.disk = 65536;
-    resouceConfig.language = "g++";
+    resouceConfig.language = "go";
 
     fileInfo.path = "/";
-    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/py_in.txt";
-    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/py_output.txt";
-    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a.py";
-    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.py";
+    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/go_in.txt";
+    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/go_output.txt";
+    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a_go";
+    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.go";
 
-    LoadConfig(&configNode, "");
+    LoadConfig(&configNode, "go");
     printf("%s %d %s %s\n", configNode.language, configNode.needCompile,
            configNode.compileArgs, configNode.runArgs);
 #endif

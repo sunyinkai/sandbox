@@ -1,1 +1,1 @@
-sudo ./runner_FSM_docker.out  g++ /home/naoh/Program/go/src/sandbox/output/a.cpp 1000 65536 65536 //home/naoh/Program/go/src/sandbox/output/a123.out   /home/naoh/Program/go/src/sandbox/output/in.txt /home/naoh/Program/go/src/sandbox/output/output.txt
+./runner_FSM_docker.out  g++ /home/naoh/Program/go/src/sandbox/output/a.cpp 1000 65536 65536 //home/naoh/Program/go/src/sandbox/output/a123.out   /home/naoh/Program/go/src/sandbox/output/in.txt /home/naoh/Program/go/src/sandbox/output/output.txt
