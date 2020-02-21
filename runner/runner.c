@@ -136,14 +136,14 @@ void ChildRun(const void *params)
     char *tmp = ReplaceFlag(configNode.runArgs, "$SRC", fileInfo.sourceFileName);
     char *cmd = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
     //执行命令,?
-    char *argv[] = {"/bin/bash","-c",cmd, NULL};
+    char *argv[] = {"/bin/bash", "-c", cmd, NULL};
     clog_info(CLOG(UNIQ_LOG_ID), "the child run cmd:%s", cmd);
     int ret = execvp("/bin/bash", argv);
     if (ret == -1)
     {
         extern int errno;
         clog_error(CLOG(UNIQ_LOG_ID), "execvp error,errno:%d,errnoinfo:%s", errno, strerror(errno));
-        exit(1);//这里会导致结果RE而不是system error
+        exit(1); //这里会导致结果RE而不是system error
     }
 }
 
@@ -214,28 +214,28 @@ void ParAfterRun(const void *params)
     {
         argsDumpAndExit.judgeStatus = EXIT_JUDGE_MLE;
         argsDumpAndExit.resultString = "MLE";
-        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
         return;
     }
     else if (usedTime > resouceConfig.time) //TLE
     {
         argsDumpAndExit.judgeStatus = EXIT_JUDGE_TLE;
         argsDumpAndExit.resultString = "TLE";
-        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
         return;
     }
-    else if (args->childExitStatus == 0) //AC,go to taker
+    else if (args->childExitStatus == 0) //需要比较结果
     {
-        argsDumpAndExit.judgeStatus = EXIT_JUDGE_AC;
-        argsDumpAndExit.resultString = "AC";
-        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        argsDumpAndExit.judgeStatus = EXIT_JUDGE_WA; //先初始化为WA
+        argsDumpAndExit.resultString = "WA";
+        FSMEventHandler(&fsm, CondResultNeedCompare, &argsDumpAndExit);
         return;
     }
     else //RE
     {
         argsDumpAndExit.judgeStatus = EXIT_JUDGE_RE;
         argsDumpAndExit.resultString = "RE";
-        FSMEventHandler(&fsm, OnProgramEnd, &argsDumpAndExit);
+        FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
         return;
     }
 }

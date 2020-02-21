@@ -13,6 +13,7 @@
 #define SAME 0
 #define DIFF 1
 #define OPEN_FILE_ERR 2
+
 #define MAX_ONE_LINE_SIZE 10000000
 #define MAX_FILE_NAME_SIZE 107
 #define FALSE 0
@@ -20,13 +21,9 @@
 //忽略行末空格
 int compare(const char *source, const char *target)
 {
-    char file_name0[MAX_FILE_NAME_SIZE], file_name2[MAX_FILE_NAME_SIZE];
-    sprintf(file_name0, "output/%s", source);
-    sprintf(file_name2, "output/%s", target);
-
     //打开待比对文件file_0,以及标准输出file_2
-    FILE *fp0 = fopen(file_name0, "r");
-    FILE *fp2 = fopen(file_name2, "r");
+    FILE *fp0 = fopen(source, "r");
+    FILE *fp2 = fopen(target, "r");
     if (fp0 == NULL || fp2 == NULL)
     {
         return OPEN_FILE_ERR;
@@ -54,6 +51,36 @@ int compare(const char *source, const char *target)
     free(line0);
     free(line2);
     return isSame ? SAME : DIFF;
+}
+
+void CheckerCompare(const void *params)
+{
+    assert(params != NULL);
+    int isSpecial = 0;
+    struct ArgsDumpAndExit *args = (struct ArgsDumpAndExit *)params;
+
+    int retCode = DIFF;
+    if (isSpecial) //special judge
+    {
+        ;
+    }
+    else
+    {
+        retCode=compare(fileInfo.usrOutputFileName,fileInfo.sysOutputFileName);
+    }
+
+    //根据comparer的结构，修改judgeStatus和resultString
+    if (retCode != SAME)
+    {
+        args->judgeStatus = EXIT_JUDGE_WA;
+        args->resultString = "WA";
+    }
+    else
+    {
+        args->judgeStatus = EXIT_JUDGE_AC;
+        args->resultString = "AC";
+    }
+    FSMEventHandler(&fsm, CondProgramNeedToExit, args);
 }
 
 void ArgsDumpAndExitInit(struct ArgsDumpAndExit *args)
@@ -85,5 +112,5 @@ void DumpAndExit(const void *params)
     {
         free(formatedJson);
     }
-    return;
+    exit(0);
 }

@@ -105,6 +105,7 @@ void InitResource(int argc, char *args[])
     fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/go_output.txt";
     fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a_go";
     fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.go";
+    fileInfo.sysOutputFileName = fileInfo.usrOutputFileName;
 
     LoadConfig(&configNode, "go");
     printf("%s %d %s %s\n", configNode.language, configNode.needCompile,

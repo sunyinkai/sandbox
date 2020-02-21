@@ -43,6 +43,12 @@ struct FSMEdge transferTable[] = {
         OnRunnerParAfterRun,
         ParAfterRun,
     },
+    {
+        OnRunnerParAfterRun,
+        CondResultNeedCompare,
+        OnCheckerCompare,
+        CheckerCompare,
+    },
 
     //所有状态都可以直接转移到退出状态,即 *----CondProgramNeedToExit---->OnProgramEnd
     {
@@ -87,6 +93,12 @@ struct FSMEdge transferTable[] = {
         OnProgramEnd,
         DumpAndExit,
     },
+    {
+        OnCheckerCompare,
+        CondProgramNeedToExit,
+        OnProgramEnd,
+        DumpAndExit,
+    },
 };
 
 //注册状态转移表
@@ -99,13 +111,13 @@ void FSMRegister(struct FSM *pFSM, struct FSMEdge *pTable)
 }
 
 //状态迁移
-void FSMTransfer(struct FSM *pFSM, int state)
+void FSMTransfer(struct FSM *pFSM, enum RunnerState state)
 {
     pFSM->curState = state;
 }
 
 //事件处理
-void FSMEventHandler(struct FSM *pFSM, int event, void *params)
+void FSMEventHandler(struct FSM *pFSM, enum Event event, void *params)
 {
     struct FSMEdge *pActTable = pFSM->pFSMTable;
     int isFind = 0;

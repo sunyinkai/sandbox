@@ -21,6 +21,7 @@ enum RunnerState
     OnRunnerParMonitor,
     OnRunnerChildRun,
     OnRunnerParAfterRun,
+    OnCheckerCompare,
     OnProgramEnd,
 };
 
@@ -34,6 +35,7 @@ enum Event
     CondRunnerIsChild,     //事件:是子进程
     CondRunnerAfterInit,   //事件:子进程初始化完毕
     CondRunnerChildExit,   //事件:子进程退出
+    CondResultNeedCompare, //事件:计算结果需要比较
     CondProgramNeedToExit, //事件:进程需要退出
 };
 
@@ -49,9 +51,10 @@ void ChildRun(const void *);
 void ParAfterRun(const void *);
 void Init(const void *);
 
+void CheckerCompare(const void *);
 void DumpAndExit(const void *);
 
-//全部变量:转移表
+//全部变量:转移argsDumpAndExit
 extern struct FSMEdge transferTable[];
 
 //全局变量:状态机
@@ -68,9 +71,9 @@ extern struct FSM fsm;
 extern void FSMRegister(struct FSM *pFSM, struct FSMEdge *pTable);
 
 //状态迁移
-extern void FSMTransfer(struct FSM *pFSM, int state);
+extern void FSMTransfer(struct FSM *pFSM, enum RunnerState state);
 
 //事件处理
-extern void FSMEventHandler(struct FSM *pFSM, int event, void *params);
+extern void FSMEventHandler(struct FSM *pFSM, enum Event event, void *params);
 
 #endif
