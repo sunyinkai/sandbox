@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 #include "fsm.h"
 #include "resource.h"
 #include "checker.h"
@@ -19,6 +20,8 @@
 #define FALSE 0
 #define TRUE 1
 //忽略行末空格
+extern int UNIQ_LOG_ID;
+extern int errno;
 int compare(const char *source, const char *target)
 {
     //打开待比对文件file_0,以及标准输出file_2
@@ -66,7 +69,7 @@ void CheckerCompare(const void *params)
     }
     else
     {
-        retCode=compare(fileInfo.usrOutputFileName,fileInfo.sysOutputFileName);
+        retCode = compare(fileInfo.usrOutputFileName, fileInfo.sysOutputFileName);
     }
 
     //根据comparer的结构，修改judgeStatus和resultString
@@ -106,6 +109,16 @@ void DumpAndExit(const void *params)
     cJSON_AddStringToObject(root, "reason", args->reason);
     char *formatedJson = cJSON_Print(root);
     printf("%s\n", formatedJson);
+
+    //dump to result.json
+    FILE *fp = fopen("result.json", "w");
+    if (fp == NULL)
+    {
+        CLOG(UNIQ_LOG_ID, "fopen error,reason is %s", strerror(errno));
+        exit(0);
+    }
+    fprintf(fp, formatedJson);
+    fclose(fp);
 
     cJSON_Delete(root);
     if (formatedJson)

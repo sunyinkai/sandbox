@@ -1,7 +1,7 @@
 /*
 program input:laguange sourceFile time memory disk sysInputFile usrOutputFile
 program output: a json file,format:
-sourceName.json
+result.json
 {
     timeUsage: .long
     memoryUsage: .long

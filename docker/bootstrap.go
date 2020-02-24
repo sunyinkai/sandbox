@@ -12,8 +12,7 @@ import (
 
 func main() {
 
-	//var contId = "294672129a10"
-	var contId = ""
+	var contId = "cd4c2d511d90"
 	ctx := context.Background()
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
 	var ci container_manage.ContainerInstance
@@ -35,6 +34,6 @@ func main() {
 	if err = json.Unmarshal(jsonByte, &compileAndRunArgs); err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v", compileAndRunArgs)
+	fmt.Printf("%+v\n", compileAndRunArgs)
 	ci.BuildDockerRunEnv(ctx, &compileAndRunArgs)
 }

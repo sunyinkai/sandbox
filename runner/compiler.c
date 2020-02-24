@@ -33,13 +33,13 @@ void Compile(const void *params)
     int compilePid = fork();
     if (compilePid < 0)
     {
-        clog_error(CLOG(UNIQ_LOG_ID), "fork error\n");
+        clog_error(CLOG(UNIQ_LOG_ID), "fork error");
     }
     else if (compilePid == 0) //вс╫ЬЁл
     {
         char *tmp = ReplaceFlag(configNode.compileArgs, "$SRC", fileInfo.sourceFileName);
         char *cmd = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
-        clog_info(CLOG(UNIQ_LOG_ID), "the compile cmd is %s\n", cmd);
+        clog_info(CLOG(UNIQ_LOG_ID), "the compile cmd is %s", cmd);
         // need free tmp and cmd?
         char *argv[] = {"/bin/bash", "-c", cmd, NULL};
         int ret = execvp("/bin/bash", argv);

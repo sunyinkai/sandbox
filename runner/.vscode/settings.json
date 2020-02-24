@@ -13,6 +13,7 @@
         "logger.h": "c",
         "resource.h": "c",
         "time.h": "c",
-        "clog.h": "c"
+        "clog.h": "c",
+        "compiler.h": "c"
     }
 }

@@ -55,7 +55,7 @@ func (ci *ContainerInstance) CreateNewContainer(ctx context.Context, image strin
 	}
 
 	//host.config
-	availableCap := []string{"CAP_SETUID", "CAP_SETGID", "CAP_CHOWN","CAP_KILL"} //限制root能力
+	availableCap := []string{"CAP_SETUID", "CAP_SETGID", "CAP_CHOWN", "CAP_KILL"} //限制root能力
 
 	hostConfig := &container.HostConfig{
 		PortBindings: portBind,
@@ -180,7 +180,12 @@ func (ci *ContainerInstance) BuildDockerRunEnv(ctx context.Context, args *json_d
 	//执行相关命令
 	chmodStr := fmt.Sprintf("chown root:root -R %s", absolutePath)
 
-	executableName := fmt.Sprintf("%s/%s", DOCKERWORKPATH, DOCKEREXENAME) //runner_FSM 所在位置
+	//将dockerExe以及config目录放到absolute目录下
+	copyExeAndConfigStr := fmt.Sprintf("cp %s %s && cp -r %s %s", DOCKEREXENAME, absolutePath, "config", absolutePath)
+	cmdList = []string{copyExeAndConfigStr,}
+	_ = ci.RunCmdInContainer(ctx, cmdList)
+
+	executableName := fmt.Sprintf("%s/%s", absolutePath, DOCKEREXENAME) //runner_FSM 所在位置
 	userExeName := fmt.Sprintf("%s/%s_%s", absolutePath, randStr, args.Language)
 	userOutputFile := fmt.Sprintf("%s/%s.output", absolutePath, randStr)
 	getFileNameInHost := func(input string) string {
@@ -199,5 +204,5 @@ func (ci *ContainerInstance) BuildDockerRunEnv(ctx context.Context, args *json_d
 		exeRunnerStr, //执行docker内的判定程序
 	}
 	_ = ci.RunCmdInContainer(ctx, cmdList)
-	defer ci.StopContainer(ctx)
+	//defer ci.StopContainer(ctx)
 }
