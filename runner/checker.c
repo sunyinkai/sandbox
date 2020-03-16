@@ -114,7 +114,7 @@ void DumpAndExit(const void *params)
     FILE *fp = fopen("result.json", "w");
     if (fp == NULL)
     {
-        CLOG(UNIQ_LOG_ID, "fopen error,reason is %s", strerror(errno));
+        clog_error(CLOG(UNIQ_LOG_ID), "fopen error,reason is %s", strerror(errno));
         exit(0);
     }
     fprintf(fp, formatedJson);

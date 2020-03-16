@@ -7,22 +7,24 @@ import (
 	"io/ioutil"
 	"sandbox/docker/container_manage"
 	"sandbox/docker/json_def"
+	"sandbox/docker/utils"
 	"time"
 )
 
 func main() {
 
-	var contId = "cd4c2d511d90"
 	ctx := context.Background()
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
 	var ci container_manage.ContainerInstance
-	ci.ContId = ""
-	if len(contId) == 0 {
-		contId, _ = ci.CreateNewContainer(ctx, "ubuntu:sandbox")
+	ci.ContId = "463879cfe511"
+	if len(ci.ContId) == 0 {
+		contId, _ := ci.CreateNewContainer(ctx, "ubuntu:sandbox")
 		ci.ContId = contId
-		fmt.Printf("contId is %s", contId)
+		ci.RandStr = utils.GenRandomStr(20)
+		fmt.Printf("contId is %s,randStr is %s", ci.ContId, ci.RandStr)
 	} else {
-		ci.ContId = contId
+		ci.RandStr = utils.GenRandomStr(20)
+		fmt.Printf("contId is %s,randStr is %s", ci.ContId, ci.RandStr)
 	}
 
 	var err error

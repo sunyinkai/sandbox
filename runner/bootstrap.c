@@ -1,5 +1,6 @@
 /*
-program input:laguange sourceFile time memory disk sysInputFile usrOutputFile
+program input:laguange sourceFile time memory disk 
+              exeFile sysInputFile sysOutputFile usrOutputFile
 program output: a json file,format:
 result.json
 {
@@ -48,7 +49,7 @@ void ProgramStart()
 
 //初始化资源配置函数
 // usage: ./runner_FSM.out laguange sourceFile time memory disk
-//                   exeFile sysInputFile usrOutputFile
+//                   exeFile sysInputFile sysOutputFile usrOutputFile
 void InitResource(int argc, char *args[])
 {
 
@@ -60,10 +61,10 @@ void InitResource(int argc, char *args[])
 
 //从args获取变量
 #ifndef DEBUG
-    if (argc != 9)
+    if (argc != 10)
     {
         printf("usage: ./runner.out language sourceFile time memory disk exeFile \
- sysInputFile usroutputFile\n");
+ sysInputFile sysOutputFile usroutputFile\n");
         printf("time: ms  , memory: KB , disk: KB\n");
         assert(1);
     }
@@ -74,9 +75,11 @@ void InitResource(int argc, char *args[])
     long runDisk = atol(args[5]);
     char *exeFile = args[6];
     char *sysInputFile = args[7];
-    char *usrOutputFile = args[8];
-    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s,%s", args[0], language,
-              sourceFile, runTime, runMemory, runDisk, exeFile, sysInputFile, usrOutputFile);
+    char *sysOutputFile = args[8];
+    char *usrOutputFile = args[9];
+    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s,%s,%s", args[0], language,
+              sourceFile, runTime, runMemory, runDisk, exeFile,
+              sysInputFile, sysOutputFile, usrOutputFile);
 
     resouceConfig.time = runTime;
     resouceConfig.memory = runMemory;
@@ -85,6 +88,7 @@ void InitResource(int argc, char *args[])
 
     fileInfo.path = "/";
     fileInfo.sysInputFileName = sysInputFile;
+    fileInfo.sysOutputFileName = sysOutputFile;
     fileInfo.usrOutputFileName = usrOutputFile;
     fileInfo.exeFileName = exeFile;
     fileInfo.sourceFileName = sourceFile;

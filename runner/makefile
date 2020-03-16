@@ -1,9 +1,9 @@
 runner: runner.o compiler.o checker.o json.o syscall_monitor.o resource.o fsm.o  bootstrap.o  
-	gcc checker.o compiler.o runner.o json.o syscall_monitor.o resource.o  fsm.o bootstrap.o  -static -o runner_FSM_debug.out -lseccomp
+	gcc checker.o compiler.o runner.o json.o syscall_monitor.o resource.o  fsm.o bootstrap.o  -static -o runner_FSM_docker.out -lseccomp
 	rm *.o
 
 runner.o: runner.c  runner.h 
-	gcc -c runner.c -D DEBUG  -o runner.o
+	gcc -c runner.c  -o runner.o
 
 compiler.o:compiler.c compiler.h 
 	gcc -c compiler.c  -o compiler.o
@@ -24,7 +24,7 @@ fsm.o:fsm.c fsm.h
 	gcc -c fsm.c -o fsm.o
 
 bootstrap.o:bootstrap.c
-	gcc -c bootstrap.c -D DEBUG -o bootstrap.o
+	gcc -c bootstrap.c  -o bootstrap.o
 
 clean:
 	/bin/rm -rf runner

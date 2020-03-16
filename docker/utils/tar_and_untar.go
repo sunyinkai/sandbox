@@ -41,6 +41,33 @@ func TarFile(srcFile string, dstFile string) error {
 	return nil
 }
 
+func Untar(tarFile, destFile string) error {
+	var srcFile = tarFile
+	fr, err := os.Open(srcFile)
+	if err != nil {
+		panic(err)
+	}
+	defer fr.Close()
+	tr := tar.NewReader(fr)
+
+	for hdr, err := tr.Next(); err != io.EOF; hdr, err = tr.Next() {
+		if err != nil {
+			panic(err)
+		}
+		fi := hdr.FileInfo()
+		fw, err := os.Create(destFile)
+		if err != nil {
+			panic(err)
+		}
+		if _, err = io.Copy(fw, tr); err != nil {
+			panic(err)
+		}
+		_ = os.Chmod(destFile, fi.Mode().Perm())
+		_ = fw.Close()
+	}
+	return nil
+}
+
 func GenRandomStr(l int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyz"
 	bytes := []byte(str)

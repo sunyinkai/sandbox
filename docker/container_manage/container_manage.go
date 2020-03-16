@@ -1,6 +1,7 @@
 package container_manage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types"
@@ -9,6 +10,7 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"io"
+	"io/ioutil"
 	"os"
 	"sandbox/docker/json_def"
 	"sandbox/docker/utils"
@@ -24,7 +26,8 @@ const (
 )
 
 type ContainerInstance struct {
-	ContId string
+	ContId  string
+	RandStr string // 随机字符串
 }
 
 func init() {
@@ -102,38 +105,37 @@ func (ci *ContainerInstance) StopContainer(ctx context.Context) {
 }
 
 //执行命令
-func (ci *ContainerInstance) RunCmdInContainer(ctx context.Context, cmdList []string) error {
+func (ci *ContainerInstance) RunCmdInContainer(ctx context.Context, cmd string) error {
 	//创建命令
-	for _, cmd := range cmdList {
-		var exec = []string{"bash", "-c"}
-		exec = append(exec, cmd)
+	var exec = []string{"bash", "-c"}
+	exec = append(exec, cmd)
 
-		exeOpt := types.ExecConfig{
-			AttachStdout: true,
-			AttachStderr: true,
-			AttachStdin:  true,
-			Tty:          true,
-			Cmd:          exec,
-		}
-		exeId, err := cli.ContainerExecCreate(ctx, ci.ContId, exeOpt)
-		if err != nil {
-			fmt.Println(err.Error())
-			continue
-		}
-		fmt.Println("exe id is ", exeId)
-		resp, er := cli.ContainerExecAttach(ctx, exeId.ID, types.ExecStartCheck{})
-		if er != nil {
-			fmt.Println(er.Error())
-			continue
-		}
-		err = cli.ContainerExecStart(ctx, exeId.ID, types.ExecStartCheck{})
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-
-		_, _ = stdcopy.StdCopy(os.Stdout, os.Stdin, resp.Reader)
-		resp.Close()
+	exeOpt := types.ExecConfig{
+		AttachStdout: true,
+		AttachStderr: true,
+		AttachStdin:  true,
+		Tty:          true,
+		Cmd:          exec,
 	}
+	exeId, err := cli.ContainerExecCreate(ctx, ci.ContId, exeOpt)
+	if err != nil {
+		fmt.Println(err.Error())
+		panic(err)
+	}
+	fmt.Println("exe id is ", exeId)
+	resp, er := cli.ContainerExecAttach(ctx, exeId.ID, types.ExecStartCheck{})
+	if er != nil {
+		fmt.Println(er.Error())
+		panic(err)
+	}
+	err = cli.ContainerExecStart(ctx, exeId.ID, types.ExecStartCheck{})
+	if err != nil {
+		fmt.Printf("there is an error")
+		fmt.Println(err.Error())
+	}
+	_, _ = stdcopy.StdCopy(os.Stdout, os.Stdout, resp.Reader)
+
+	resp.Close()
 	return nil
 }
 
@@ -152,57 +154,64 @@ func (ci *ContainerInstance) CopyFileToContainer(ctx context.Context, srcFile st
 //从容器里拷贝出文件
 func (ci *ContainerInstance) CopyFileFromContainer(ctx context.Context, srcFile string, dstPath string) {
 	readCloser, containerPathStatus, err := cli.CopyFromContainer(ctx, ci.ContId, srcFile)
+	defer readCloser.Close()
 	if err != nil {
 		panic(err.Error())
 	}
+
 	fmt.Printf("%+v", containerPathStatus)
-	var p []byte
-	_, _ = readCloser.Read(p)
-	_ = readCloser.Close()
+	buf := new(bytes.Buffer)
+	_, _ = buf.ReadFrom(readCloser)
+	tmpTarFile := fmt.Sprintf("/tmp/result_%s.tar", ci.RandStr)
+	err = ioutil.WriteFile(tmpTarFile, buf.Bytes(), 0666)
+	defer os.Remove(tmpTarFile)
+	_ = utils.Untar(tmpTarFile, dstPath)
+	if err != nil {
+		panic(err)
+	}
 }
+
+var ContId = ""
 
 //将相关文件传入docker内,构建运行环境
 func (ci *ContainerInstance) BuildDockerRunEnv(ctx context.Context, args *json_def.CompileAndRunArgs) {
 	ci.StartContainer(ctx)
 	//创建临时目录
-	randStr := utils.GenRandomStr(20)
-	absolutePath := fmt.Sprintf("%s/%s", DOCKERWORKPATH, randStr)
+	absolutePath := fmt.Sprintf("%s/%s", DOCKERWORKPATH, ci.RandStr)
 	mkdirStr := fmt.Sprintf("mkdir -p %s", absolutePath)
-	var cmdList = []string{
-		mkdirStr,
-	}
-	_ = ci.RunCmdInContainer(ctx, cmdList)
+	_ = ci.RunCmdInContainer(ctx, mkdirStr)
 
 	//将文件拷贝到docker内去
 	ci.CopyFileToContainer(ctx, args.SourceFile, absolutePath)
 	ci.CopyFileToContainer(ctx, args.SysInputFile, absolutePath)
+	ci.CopyFileToContainer(ctx, args.SysOutputFile, absolutePath)
 
 	//执行相关命令
 	chmodStr := fmt.Sprintf("chown root:root -R %s", absolutePath)
 
 	//将dockerExe以及config目录放到absolute目录下
 	copyExeAndConfigStr := fmt.Sprintf("cp %s %s && cp -r %s %s", DOCKEREXENAME, absolutePath, "config", absolutePath)
-	cmdList = []string{copyExeAndConfigStr,}
-	_ = ci.RunCmdInContainer(ctx, cmdList)
+	_ = ci.RunCmdInContainer(ctx, copyExeAndConfigStr)
 
 	executableName := fmt.Sprintf("%s/%s", absolutePath, DOCKEREXENAME) //runner_FSM 所在位置
-	userExeName := fmt.Sprintf("%s/%s_%s", absolutePath, randStr, args.Language)
-	userOutputFile := fmt.Sprintf("%s/%s.output", absolutePath, randStr)
+	userExeName := fmt.Sprintf("%s/%s_%s", absolutePath, ci.RandStr, args.Language)
+	userOutputFile := fmt.Sprintf("%s/%s.output", absolutePath, ci.RandStr)
 	getFileNameInHost := func(input string) string {
 		stringSlice := strings.Split(input, "/")
 		return stringSlice[len(stringSlice)-1]
 	}
 	sysInputFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SysInputFile))
+	sysOutputFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SysOutputFile))
 	usrSourceFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SourceFile))
-	exeRunnerStr := fmt.Sprintf("%s %s %s %d %d %d %s %s %s",
+	exeRunnerStr := fmt.Sprintf("%s %s %s %d %d %d %s %s %s %s",
 		executableName, args.Language, usrSourceFileInDocker,
 		args.Time, args.Memory, args.Disk,
-		userExeName, sysInputFileInDocker, userOutputFile)
+		userExeName, sysInputFileInDocker, sysOutputFileInDocker, userOutputFile)
 	fmt.Printf("\nrunnerStr:%s\n", exeRunnerStr)
-	cmdList = []string{
-		chmodStr,     //修改文件owner
-		exeRunnerStr, //执行docker内的判定程序
-	}
-	_ = ci.RunCmdInContainer(ctx, cmdList)
-	//defer ci.StopContainer(ctx)
+	unionChmodAndExeRunner := fmt.Sprintf("%s && %s", chmodStr, exeRunnerStr)
+	_ = ci.RunCmdInContainer(ctx, unionChmodAndExeRunner)
+
+	//获取docker内部的json文件
+	jsonPathInDocker := fmt.Sprintf("%s/%s", DOCKERWORKPATH, "result.json")
+	ci.CopyFileFromContainer(ctx, jsonPathInDocker, "./result.json")
 }

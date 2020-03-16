@@ -106,7 +106,8 @@ void ChildInit(const void *params)
     //setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10240);
     //setProgressLimit(RLIMIT_FSIZE, resouceConfig.disk + 10240);
     //setProgressLimit(RLIMIT_CORE,0);
-
+    //setProgressLimit(RLIMIT_NPROC,2);
+    //setProgressLimit(RLIMIT_NOFILE,20);
     //重定向IO
     char infileName[100];
     char outfileName[100];
@@ -121,7 +122,7 @@ void ChildInit(const void *params)
     // //安装system_call filter
     //char cmd[100];
     //sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
-    //install_seccomp_filter();
+    install_seccomp_filter();
 
     // 修改uid和gid
     setgid(65534);

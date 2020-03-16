@@ -4,5 +4,6 @@
   "memory": 65536,
   "disk": 65536,
   "sysInputFile": "/home/naoh/Program/go/src/sandbox/output/cpp_in.txt",
+  "sysOutputFile": "/home/naoh/Program/go/src/sandbox/output/cpp_out.txt",
   "sourceFile": "/home/naoh/Program/go/src/sandbox/output/a.cpp"
 }

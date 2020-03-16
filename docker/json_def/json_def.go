@@ -6,5 +6,6 @@ type CompileAndRunArgs struct {
 	Memory       int64  `json:"memory"`
 	Disk         int64  `json:"disk"`
 	SysInputFile string `json:"sysInputFile"`
+	SysOutputFile string `json:"sysOutputFile"`
 	SourceFile   string `json:"sourceFile"`
 }
