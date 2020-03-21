@@ -2,8 +2,8 @@ package utils
 
 import (
 	"archive/tar"
-	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"os"
 	"time"
@@ -37,7 +37,7 @@ func TarFile(srcFile string, dstFile string) error {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("write bytes Num", bytesNum)
+	log.Printf("write bytes Num:%d", bytesNum)
 	return nil
 }
 
