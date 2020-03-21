@@ -107,7 +107,6 @@ void FSMRegister(struct FSM *pFSM, struct FSMEdge *pTable)
     pFSM->pFSMTable = pTable;
     pFSM->curState = OnRunnerStart;
     pFSM->size = sizeof(transferTable) / sizeof(struct FSMEdge);
-    printf("FSM size:%d\n", pFSM->size);
 }
 
 //×´Ì¬Ç¨ÒÆ

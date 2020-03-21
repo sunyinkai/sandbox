@@ -122,7 +122,7 @@ void ChildInit(const void *params)
     // //安装system_call filter
     //char cmd[100];
     //sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
-    install_seccomp_filter();
+    //install_seccomp_filter();
 
     // 修改uid和gid
     setgid(65534);

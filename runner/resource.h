@@ -20,6 +20,7 @@ struct FileInfo
     char *sysOutputFileName; //问题答案文件
     char *usrOutputFileName; //输出文件名称　output.txt
     char *exeFileName;       //待执行文件名称 a.out
+    char *resultJsonFileName;//结果生成的json名字
 };
 extern struct FileInfo fileInfo;
 
