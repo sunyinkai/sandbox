@@ -49,7 +49,7 @@ void ProgramStart()
 
 //初始化资源配置函数
 // usage: ./runner_FSM.out laguange sourceFile time memory disk
-//                   exeFile sysInputFile sysOutputFile usrOutputFile
+//                   exeFile sysInputFile sysOutputFile usrOutputFile resultJsonFile
 void InitResource(int argc, char *args[])
 {
 
@@ -61,12 +61,12 @@ void InitResource(int argc, char *args[])
 
 //从args获取变量
 #ifndef DEBUG
-    if (argc != 10)
+    if (argc != 11)
     {
         printf("usage: ./runner.out language sourceFile time memory disk exeFile \
- sysInputFile sysOutputFile usroutputFile\n");
+ sysInputFile sysOutputFile usroutputFile resultJsonFile \n");
         printf("time: ms  , memory: KB , disk: KB\n");
-        assert(1);
+        exit(1);
     }
     char *language = args[1];
     char *sourceFile = args[2];
@@ -77,9 +77,10 @@ void InitResource(int argc, char *args[])
     char *sysInputFile = args[7];
     char *sysOutputFile = args[8];
     char *usrOutputFile = args[9];
-    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s,%s,%s", args[0], language,
+    char *resultJsonFile = args[10];
+    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s,%s,%s,%s", args[0], language,
               sourceFile, runTime, runMemory, runDisk, exeFile,
-              sysInputFile, sysOutputFile, usrOutputFile);
+              sysInputFile, sysOutputFile, usrOutputFile, resultJsonFile);
 
     resouceConfig.time = runTime;
     resouceConfig.memory = runMemory;
@@ -92,6 +93,7 @@ void InitResource(int argc, char *args[])
     fileInfo.usrOutputFileName = usrOutputFile;
     fileInfo.exeFileName = exeFile;
     fileInfo.sourceFileName = sourceFile;
+    fileInfo.resultJsonFileName = resultJsonFile;
 
     LoadConfig(&configNode, resouceConfig.language);
     clog_info(CLOG(UNIQ_LOG_ID), "the language:%s,needCompile:%d,compileArgs:%s,runArgs:%s",
@@ -110,6 +112,7 @@ void InitResource(int argc, char *args[])
     fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a_go";
     fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.go";
     fileInfo.sysOutputFileName = fileInfo.usrOutputFileName;
+    fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/result_go_1.json";
 
     LoadConfig(&configNode, "go");
     printf("%s %d %s %s\n", configNode.language, configNode.needCompile,

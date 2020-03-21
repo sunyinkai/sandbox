@@ -3,39 +3,32 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"log"
 	"sandbox/docker/container_manage"
 	"sandbox/docker/json_def"
-	"sandbox/docker/utils"
-	"time"
+	"sandbox/docker/mq"
 )
 
 func main() {
-
 	ctx := context.Background()
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
-	var ci container_manage.ContainerInstance
-	ci.ContId = "463879cfe511"
-	if len(ci.ContId) == 0 {
-		contId, _ := ci.CreateNewContainer(ctx, "ubuntu:sandbox")
-		ci.ContId = contId
-		ci.RandStr = utils.GenRandomStr(20)
-		fmt.Printf("contId is %s,randStr is %s", ci.ContId, ci.RandStr)
-	} else {
-		ci.RandStr = utils.GenRandomStr(20)
-		fmt.Printf("contId is %s,randStr is %s", ci.ContId, ci.RandStr)
-	}
+	cp := container_manage.ContainerPool{}
+	cp.Init(ctx, 2)
+	mq.Init()
+	log.Printf("Init Finish")
+	for {
+		valList := mq.RedisCli.BRPop(0, mq.MESSAGEQUEUEKEY)
+		v := valList.Val() //[mqName,str]
+		jsonStr := v[1]
+		var compileAndRunArgs json_def.CompileAndRunArgs
+		if err := json.Unmarshal([]byte(jsonStr), &compileAndRunArgs); err != nil {
+			log.Println(err)
+			continue
+		}
 
-	var err error
-	var jsonByte []byte
-	var compileAndRunArgs json_def.CompileAndRunArgs
-	if jsonByte, err = ioutil.ReadFile("config.json"); err != nil {
-		panic(err)
+		select {
+		case entityId := <-cp.AvailableContChans:
+			log.Printf("entityId:%v\n", entityId)
+			go cp.AddTask(ctx, compileAndRunArgs, entityId)
+		}
 	}
-	if err = json.Unmarshal(jsonByte, &compileAndRunArgs); err != nil {
-		panic(err)
-	}
-	fmt.Printf("%+v\n", compileAndRunArgs)
-	ci.BuildDockerRunEnv(ctx, &compileAndRunArgs)
 }

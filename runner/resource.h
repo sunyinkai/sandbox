@@ -17,9 +17,10 @@ struct FileInfo
     char *sourceFileName;    //源文件名称
     char *path;              //文件所在目录
     char *sysInputFileName;  //输入文件名称 input.txt
+    char *sysOutputFileName; //问题答案文件
     char *usrOutputFileName; //输出文件名称　output.txt
     char *exeFileName;       //待执行文件名称 a.out
-    char *sysOutputFileName; //问题答案文件
+    char *resultJsonFileName;//结果生成的json名字
 };
 extern struct FileInfo fileInfo;
 
