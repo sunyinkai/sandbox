@@ -6,5 +6,5 @@
   "sysInputFile": "/home/naoh/Program/go/src/sandbox/output/cpp_in.txt",
   "sysOutputFile": "/home/naoh/Program/go/src/sandbox/output/cpp_out.txt",
   "sourceFile": "/home/naoh/Program/go/src/sandbox/output/a.cpp",
-  "resultJsonFile": "/home/naoh/Program/go/src/sandbox/output/result_121381.json"
+  "resultJsonFile": "/home/naoh/Program/go/src/sandbox/docker/test/result_123.json"
 }

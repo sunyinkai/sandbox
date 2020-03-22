@@ -163,7 +163,6 @@ func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.Co
 	sysOutputFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SysOutputFile))
 	usrSourceFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SourceFile))
 	resultJsonFileInDocker := fmt.Sprintf("%s/%s_result.json", DOCKERWORKPATH, ce.randStr)
-
 	exeRunnerStr := fmt.Sprintf("%s %s %s %d %d %d %s %s %s %s %s",
 		executableName, args.Language, usrSourceFileInDocker,
 		args.Time, args.Memory, args.Disk,
