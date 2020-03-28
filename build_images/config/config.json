@@ -4,31 +4,53 @@
             "language": "python3.7",
             "needCompile": 0,
             "compileArgs": " ",
-            "runArgs": "python3.7 $SRC"
+            "runArgs": "/usr/bin/python3.7 $SRC",
+            "syscallMode":"white",
+            "syscallItems":[0,1,2,3,4,5,6,8,9,10,11,12,13,14,16,
+                21,25,32,39,41,42,59,60,72,78,79,89,97,99,102,104,
+                107,108,117,131,146,158,191,202,217,218,228,231,257,
+                272,273,302,318]
         },
         {
             "language": "python2.7",
             "needCompile": 0,
             "compileArgs": " ",
-            "runArgs": "python2.7 $SRC"
+            "runArgs": "/usr/bin/python2.7 $SRC",
+            "syscallMode":"white",
+            "syscallItems":[0,1,2,3,4,5,6,8,9,10,11,12,13,14,16,
+                21,25,32,39,41,42,59,60,72,78,79,89,97,99,102,104,
+                107,108,117,131,146,158,191,202,217,218,228,231,257,
+                272,273,302,318]
         },
         {
             "language": "g++",
             "needCompile": 1,
             "compileArgs": "g++ $SRC -lpthread  -o $EXE",
-            "runArgs": "$EXE"
+            "runArgs": "$EXE",
+            "syscallMode":"white",
+            "syscallItems":[
+                0,1,2,3,4,5,8,9,10,11,12,20,21,59,63,89,
+                99,158,201,202,205,231,240,252,272,273,275,511
+            ]
         },
         {
             "language": "gcc",
             "needCompile": 1,
             "compileArgs": "gcc $SRC -o $EXE",
-            "runArgs": "$EXE"
+            "runArgs": "$EXE",
+            "syscallMode":"white",
+            "syscallItem":[
+                0,1,2,3,4,5,8,9,10,11,12,20,21,59,63,89,
+                99,158,201,202,205,231,240,252,272,273,275,511
+            ]
         },
         {
             "language": "go",
             "needCompile": 1,
             "compileArgs": "go build -o $EXE $SRC",
-            "runArgs": "$EXE"
+            "runArgs": "$EXE",
+            "syscallMode":"black",
+            "syscallItems":[]
         }
     ]
 }

@@ -14,23 +14,30 @@ extern struct ResourceConfig resouceConfig;
 //文件相关信息
 struct FileInfo
 {
-    char *sourceFileName;    //源文件名称
-    char *path;              //文件所在目录
-    char *sysInputFileName;  //输入文件名称 input.txt
-    char *sysOutputFileName; //问题答案文件
-    char *usrOutputFileName; //输出文件名称　output.txt
-    char *exeFileName;       //待执行文件名称 a.out
-    char *resultJsonFileName;//结果生成的json名字
+    char *sourceFileName;     //源文件名称
+    char *path;               //文件所在目录
+    char *sysInputFileName;   //输入文件名称 input.txt
+    char *sysOutputFileName;  //问题答案文件
+    char *usrOutputFileName;  //输出文件名称　output.txt
+    char *exeFileName;        //待执行文件名称 a.out
+    char *resultJsonFileName; //结果生成的json名字
 };
 extern struct FileInfo fileInfo;
 
 //读取这门语言相关的配置档
+struct DataItem
+{
+    void *data;
+    struct DataItem *next;
+};
 struct ConfigNode
 {
     char *language;
     int needCompile;
     char *compileArgs;
     char *runArgs;
+    char *syscallMode;            //模式
+    struct DataItem *syscallItems; //系统调用list
 };
 extern struct ConfigNode configNode;
 int LoadConfig(struct ConfigNode *, char *);

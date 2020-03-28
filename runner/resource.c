@@ -8,6 +8,32 @@ struct ResourceConfig resouceConfig;
 struct FileInfo fileInfo;
 struct ConfigNode configNode;
 
+static struct DataItem *GetSyscallItems(cJSON *syscallItems)
+{
+    struct DataItem *head = NULL;
+    struct DataItem *now = head;
+    int arraySize = cJSON_GetArraySize(syscallItems);
+    cJSON *item;
+    for (int i = 0; i < arraySize; ++i)
+    {
+        item = cJSON_GetArrayItem(syscallItems, i);
+        assert(item != NULL);
+        struct DataItem *newDataItem = (struct DataItem *)malloc(sizeof(struct DataItem *));
+        newDataItem->data = item->valueint;
+        newDataItem->next = NULL;
+        if (now == NULL)
+        {
+            head = now = newDataItem;
+        }
+        else
+        {
+            now->next = newDataItem;
+            now = now->next;
+        }
+    }
+    return head;
+}
+
 int LoadConfig(struct ConfigNode *configNode, char *targetLanguage)
 {
     FILE *fp = fopen("config/config.json", "r");
@@ -26,7 +52,7 @@ int LoadConfig(struct ConfigNode *configNode, char *targetLanguage)
     assert(json != NULL);
     cJSON *jsList = cJSON_GetObjectItem(json, "language");
     assert(jsList != NULL);
-    cJSON *item, *language, *needCompile, *compileArgs, *runArgs;
+    cJSON *item, *language, *needCompile, *compileArgs, *runArgs, *syscallMode, *syscallItems;
     int arraySize = cJSON_GetArraySize(jsList);
 
     for (int i = 0; i < arraySize; ++i)
@@ -45,13 +71,17 @@ int LoadConfig(struct ConfigNode *configNode, char *targetLanguage)
         assert(compileArgs != NULL);
         runArgs = cJSON_GetObjectItem(it, "runArgs");
         assert(runArgs != NULL);
-
+        syscallMode = cJSON_GetObjectItem(it, "syscallMode");
+        assert(syscallMode != NULL);
+        syscallItems = cJSON_GetObjectItem(it, "syscallItems");
         if (strcmp(language->valuestring, targetLanguage) == 0)
         {
             configNode->language = language->valuestring;
             configNode->needCompile = needCompile->valueint;
             configNode->compileArgs = compileArgs->valuestring;
             configNode->runArgs = runArgs->valuestring;
+            configNode->syscallMode = syscallMode->valuestring;
+            configNode->syscallItems = GetSyscallItems(syscallItems);
             break;
         }
     }
@@ -70,7 +100,7 @@ char *ReplaceFlag(const char *originStr, char *flag, char *dst)
     int lenStr = strlen(originStr);
     int lenFlag = strlen(flag);
     int lenDst = strlen(dst);
-    int mallocSize = 30;
+    int mallocSize = 300;
     char *resultStr = (char *)malloc(sizeof(char) * mallocSize);
     int now = 0;
     for (int i = 0; i < lenStr;)

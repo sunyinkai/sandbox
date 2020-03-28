@@ -25,10 +25,8 @@ func main() {
 			continue
 		}
 
-		select {
-		case entityId := <-cp.AvailableContChans:
-			log.Printf("entityId:%v\n", entityId)
-			go cp.AddTask(ctx, compileAndRunArgs, entityId)
-		}
+		entityId := <-cp.AvailableContChans
+		log.Printf("entityId:%v\n", entityId)
+		go cp.AddTask(ctx, compileAndRunArgs, entityId)
 	}
 }

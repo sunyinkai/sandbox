@@ -101,20 +101,29 @@ void InitResource(int argc, char *args[])
 #endif
 
 #ifdef DEBUG
-    resouceConfig.time = 1000;
+    resouceConfig.time = 2000;
     resouceConfig.memory = 65536;
     resouceConfig.disk = 65536;
     resouceConfig.language = "go";
 
     fileInfo.path = "/";
-    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/go_in.txt";
-    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/go_output.txt";
-    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/a_go";
-    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/a.go";
-    fileInfo.sysOutputFileName = fileInfo.usrOutputFileName;
-    fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/result_go_1.json";
+    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/GO/go_in.txt";
+    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/GO/usr_output.txt";
+    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/GO/a_go";
+    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/GO/a.go";
+    fileInfo.sysOutputFileName = "/home/naoh/Program/go/src/sandbox/output/GO/go_output.txt";
+    fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/GO/result_go_1.json";
 
-    LoadConfig(&configNode, "go");
+    /*
+    fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_in.txt";
+    fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/usr_output.txt";
+    fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/a_cpp";
+    fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/main.cpp";
+    fileInfo.sysOutputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_output.txt";
+    fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/result_cpp_1.json";
+    */
+
+    LoadConfig(&configNode, resouceConfig.language);
     printf("%s %d %s %s\n", configNode.language, configNode.needCompile,
            configNode.compileArgs, configNode.runArgs);
 #endif

@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "syscall_monitor.h"
 #include "fsm.h"
@@ -102,11 +103,11 @@ void Run(const void *params)
 void ChildInit(const void *params)
 {
     //设置资源限制
-    //setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 2000) / 1000);
-    //setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10240);
-    //setProgressLimit(RLIMIT_FSIZE, resouceConfig.disk + 10240);
-    //setProgressLimit(RLIMIT_CORE,0);
-    //setProgressLimit(RLIMIT_NPROC,2);
+    // setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 2000) / 1000);
+    // setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10240);
+    // setProgressLimit(RLIMIT_NPROC, 5);
+    // setProgressLimit(RLIMIT_FSIZE, resouceConfig.disk + 10240);
+    // setProgressLimit(RLIMIT_CORE,0);
     //setProgressLimit(RLIMIT_NOFILE,20);
     //重定向IO
     char infileName[100];
@@ -119,27 +120,34 @@ void ChildInit(const void *params)
     int write_fd = open(outfileName, openFlags, filePerms);
     dup2(read_fd, STDIN_FILENO);
     dup2(write_fd, STDOUT_FILENO);
-    // //安装system_call filter
-    //char cmd[100];
-    //sprintf(cmd, "%s/%s", fileInfo.path, fileInfo.exeFileName);
-    //install_seccomp_filter();
-
     // 修改uid和gid
-    setgid(65534);
-    setuid(65534);
+    setuid(65529);
+    setgid(65529);
 
+    //安装system_call filter
+    install_seccomp_filter();
     FSMEventHandler(&fsm, CondRunnerAfterInit, NULL);
 }
 
 //子进程运行函数
 void ChildRun(const void *params)
 {
+    //获取命令执行参数
     char *tmp = ReplaceFlag(configNode.runArgs, "$SRC", fileInfo.sourceFileName);
-    char *cmd = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
-    //执行命令,?
-    char *argv[] = {"/bin/bash", "-c", cmd, NULL};
-    clog_info(CLOG(UNIQ_LOG_ID), "the child run cmd:%s", cmd);
-    int ret = execvp("/bin/bash", argv);
+    char *argvStr = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
+    int len=strlen(argvStr);
+    char path[100];
+    for(int i=0;i<len;++i){
+        if(isspace(argvStr[i])){
+            path[i]='\0';
+            break;
+        }
+        path[i]=argvStr[i];
+    }
+    char *argv[] = {argvStr, NULL};
+    clog_info(CLOG(UNIQ_LOG_ID), "the child run path:%s,argv:%s", path,argvStr);
+
+    int ret = execve(path, argv,NULL);
     if (ret == -1)
     {
         extern int errno;
@@ -178,7 +186,7 @@ void ParMonitor(const void *params)
 
         if (retCode != 0) //子进程状态发生了变化
         {
-            clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,status is %d", fpid, retCode, childStatus);
+            clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,normal_exited %d,status is %d", fpid, retCode,WIFEXITED(childStatus),childStatus);
             break;
         }
     }
