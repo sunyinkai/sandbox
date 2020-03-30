@@ -19,9 +19,15 @@
 #define MAX_FILE_NAME_SIZE 107
 #define FALSE 0
 #define TRUE 1
-//忽略行末空格
 extern int UNIQ_LOG_ID;
 extern int errno;
+//忽略行末空格
+static void stripSpace(char*s,int len){
+    for(int i=len-1;i!=0;--i){
+        if(isspace(s[i]))s[i]='\0';
+        else break;
+	}
+}
 int compare(const char *source, const char *target)
 {
     //打开待比对文件file_0,以及标准输出file_2
@@ -43,6 +49,12 @@ int compare(const char *source, const char *target)
             break;
         }
         fgets(line2, MAX_ONE_LINE_SIZE, fp0);
+        int len0=strlen(line0),len2=strlen(line2);
+        if(len0==MAX_ONE_LINE_SIZE||len2==MAX_ONE_LINE_SIZE){
+			//warning
+        }
+        stripSpace(line0,len0);//去掉空格以及换行
+        stripSpace(line2,len2);
         if (strcmp(line0, line2) != 0)
         {
             isSame = FALSE;
@@ -53,6 +65,8 @@ int compare(const char *source, const char *target)
         isSame = FALSE;
     free(line0);
     free(line2);
+    fclose(fp0);
+    fclose(fp2);
     return isSame ? SAME : DIFF;
 }
 
