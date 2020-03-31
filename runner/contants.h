@@ -15,4 +15,10 @@
 #define MB_TO_KB 1024
 #define KB_TO_BYTES 1024
 
+// some magic number
+#define EXEC_ERROR_EXIT_CODE 123
+#define SPJ_TIME_OUT 20
+#define COMPILE_TIME_OUT 5
+#define COMPILE_RLIMIT_FSIZE 64 * MB_TO_BYTES
+
 #endif

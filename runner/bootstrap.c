@@ -55,16 +55,15 @@ void InitResource(int argc, char *args[])
 
     init_log(UNIQ_LOG_ID, CLOG_INFO); //初始化日志信息
 
-    //注册状态机
     FSMRegister(&fsm, transferTable); //注册转移表
-    fsm.curState = OnProgramStart;    //在程序起始位置
+    fsm.curState = OnProgramStart;    //初始化当前状态
 
 //从args获取变量
 #ifndef DEBUG
-    if (argc != 11)
+    if (argc != 11 && argc != 12)
     {
         printf("usage: ./runner.out language sourceFile time memory disk exeFile \
- sysInputFile sysOutputFile usroutputFile resultJsonFile \n");
+ sysInputFile sysOutputFile usroutputFile resultJsonFile [specialJudgeExe]\n");
         printf("time: ms  , memory: KB , disk: KB\n");
         exit(1);
     }
@@ -78,10 +77,16 @@ void InitResource(int argc, char *args[])
     char *sysOutputFile = args[8];
     char *usrOutputFile = args[9];
     char *resultJsonFile = args[10];
-    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s,%s,%s,%s", args[0], language,
-              sourceFile, runTime, runMemory, runDisk, exeFile,
-              sysInputFile, sysOutputFile, usrOutputFile, resultJsonFile);
+    char *specialJudgeExe = NULL;
+    if (argc == 12)
+    {
+        specialJudgeExe = args[11];
+    }
 
+    clog_info(CLOG(UNIQ_LOG_ID), "the args is %s,%s,%s,%ld,%ld,%ld,%s,%s,%s,%s,%s,[%s]",
+              args[0], language,
+              sourceFile, runTime, runMemory, runDisk, exeFile,
+              sysInputFile, sysOutputFile, usrOutputFile, resultJsonFile, specialJudgeExe);
     resouceConfig.time = runTime;
     resouceConfig.memory = runMemory;
     resouceConfig.disk = runDisk;
@@ -94,6 +99,7 @@ void InitResource(int argc, char *args[])
     fileInfo.exeFileName = exeFile;
     fileInfo.sourceFileName = sourceFile;
     fileInfo.resultJsonFileName = resultJsonFile;
+    fileInfo.specialJudgeExe = specialJudgeExe;
 
     LoadConfig(&configNode, resouceConfig.language);
     clog_info(CLOG(UNIQ_LOG_ID), "the language:%s,needCompile:%d,compileArgs:%s,runArgs:%s",
@@ -104,24 +110,24 @@ void InitResource(int argc, char *args[])
     resouceConfig.time = 2000;
     resouceConfig.memory = 65536;
     resouceConfig.disk = 65536;
-    resouceConfig.language = "go";
-
+    resouceConfig.language = "g++";
     fileInfo.path = "/";
+    /*
     fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/GO/go_in.txt";
     fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/GO/usr_output.txt";
     fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/GO/a_go";
     fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/GO/a.go";
     fileInfo.sysOutputFileName = "/home/naoh/Program/go/src/sandbox/output/GO/go_output.txt";
     fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/GO/result_go_1.json";
+    */
 
-    /*
     fileInfo.sysInputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_in.txt";
     fileInfo.usrOutputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/usr_output.txt";
     fileInfo.exeFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/a_cpp";
     fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/main.cpp";
     fileInfo.sysOutputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_output.txt";
     fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/result_cpp_1.json";
-    */
+    fileInfo.specialJudgeExe = "/home/naoh/Program/go/src/sandbox/output/CPP/spj";
 
     LoadConfig(&configNode, resouceConfig.language);
     printf("%s %d %s %s\n", configNode.language, configNode.needCompile,

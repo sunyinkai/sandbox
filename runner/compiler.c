@@ -23,9 +23,11 @@ int needCompile(const char *s)
 
 //编译程序
 static int compilePid;
-static void timeout_kill(int sigId){
-    if(compilePid>0){
-        kill(compilePid,SIGKILL);
+static void timeout_kill(int sigId)
+{
+    if (compilePid > 0)
+    {
+        kill(compilePid, SIGKILL);
     }
     alarm(0);
 }
@@ -41,10 +43,10 @@ void Compile(const void *params)
     }
     else if (compilePid == 0) //子进程
     {
-		//setrlimit,限制磁盘大小
+        //setrlimit,限制磁盘大小
         struct rlimit limit;
-        rimit.rlim_cur=limit.rlim_max=64*MB_TO_BYTES;
-        setrlimit(RLIMIT_FSIZE,&limit);	
+        limit.rlim_cur = limit.rlim_max = COMPILE_RLIMIT_FSIZE;
+        setrlimit(RLIMIT_FSIZE, &limit);
 
         char *tmp = ReplaceFlag(configNode.compileArgs, "$SRC", fileInfo.sourceFileName);
         char *cmd = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
@@ -55,24 +57,30 @@ void Compile(const void *params)
         {
             extern int errno;
             clog_error(CLOG(UNIQ_LOG_ID), "execvp error,errno:%d,errnoinfo:%s", errno, strerror(errno));
-            exit(1); //这里会导致结果RE而不是system erro
+            exit(EXEC_ERROR_EXIT_CODE);
         }
     }
     else
     {
-        signal(SIGALRM,timeout_kill);//设置编译超时时间
-        alarm(5);
+        signal(SIGALRM, timeout_kill); //设置编译超时时间
+        alarm(COMPILE_TIME_OUT);
         int status;
         int retCode = wait(&status);
         clog_info(CLOG(UNIQ_LOG_ID), "the compile subprogress pid is %d,retcode is %d", retCode, status);
-        if (status != 0) //如果编译进程有问题,这个地方需要进一步修改
+        if (WIFEXITED(status) != 0)
         {
-            struct ArgsDumpAndExit argsDumpAndExit;
-            ArgsDumpAndExitInit(&argsDumpAndExit);
-            argsDumpAndExit.judgeStatus = EXIT_JUDGE_CE;
-            argsDumpAndExit.resultString = "CE";
-            FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
-            return;
+            if (WEXITSTATUS(status) == EXEC_ERROR_EXIT_CODE)
+            {
+                struct ArgsDumpAndExit args;
+                BuildSysErrorExitArgs(&args, "compile progress execve error");
+                FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
+            }
+        }
+        else
+        {
+            struct ArgsDumpAndExit args;
+            BuildSysErrorExitArgs(&args, "compile progress exit abnormal");
+            FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
         }
         FSMEventHandler(&fsm, CondCompileFinish, NULL);
         return;
