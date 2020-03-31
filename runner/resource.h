@@ -21,6 +21,7 @@ struct FileInfo
     char *usrOutputFileName;  //输出文件名称　output.txt
     char *exeFileName;        //待执行文件名称 a.out
     char *resultJsonFileName; //结果生成的json名字
+    char *specialJudgeExe;    //特判程序
 };
 extern struct FileInfo fileInfo;
 
@@ -36,7 +37,7 @@ struct ConfigNode
     int needCompile;
     char *compileArgs;
     char *runArgs;
-    char *syscallMode;            //模式
+    char *syscallMode;             //模式
     struct DataItem *syscallItems; //系统调用list
 };
 extern struct ConfigNode configNode;

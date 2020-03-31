@@ -10,8 +10,9 @@ struct ArgsDumpAndExit
     long memoryUsage;
     int systemStatus;
     int judgeStatus;
-    char *resultString;
-    char *reason;
+    const char *resultString;
+    const char *reason;
 };
 void ArgsDumpAndExitInit(struct ArgsDumpAndExit *);
+void BuildSysErrorExitArgs(struct ArgsDumpAndExit *args, const char *reason);
 #endif

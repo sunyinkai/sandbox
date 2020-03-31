@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
 #include "fsm.h"
 #include "resource.h"
 #include "checker.h"
@@ -22,12 +25,17 @@
 extern int UNIQ_LOG_ID;
 extern int errno;
 //忽略行末空格
-static void stripSpace(char*s,int len){
-    for(int i=len-1;i!=0;--i){
-        if(isspace(s[i]))s[i]='\0';
-        else break;
-	}
+static void stripSpace(char *s, int len)
+{
+    for (int i = len - 1; i != 0; --i)
+    {
+        if (isspace(s[i]))
+            s[i] = '\0';
+        else
+            break;
+    }
 }
+
 int compare(const char *source, const char *target)
 {
     //打开待比对文件file_0,以及标准输出file_2
@@ -49,12 +57,15 @@ int compare(const char *source, const char *target)
             break;
         }
         fgets(line2, MAX_ONE_LINE_SIZE, fp0);
-        int len0=strlen(line0),len2=strlen(line2);
-        if(len0==MAX_ONE_LINE_SIZE||len2==MAX_ONE_LINE_SIZE){
-			//warning
+        int len0 = strlen(line0), len2 = strlen(line2);
+        if (len0 == MAX_ONE_LINE_SIZE || len2 == MAX_ONE_LINE_SIZE)
+        {
+            struct ArgsDumpAndExit args;
+            BuildSysErrorExitArgs(&args, "one line size too large");
+            FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
         }
-        stripSpace(line0,len0);//去掉空格以及换行
-        stripSpace(line2,len2);
+        stripSpace(line0, len0); //去掉空格以及换行
+        stripSpace(line2, len2);
         if (strcmp(line0, line2) != 0)
         {
             isSame = FALSE;
@@ -70,16 +81,74 @@ int compare(const char *source, const char *target)
     return isSame ? SAME : DIFF;
 }
 
+//special judge
+static int spjPid;
+static void timeout_kill(int sigId)
+{
+    if (spjPid > 0)
+    {
+        kill(spjPid, SIGKILL);
+    }
+    alarm(0);
+}
+
+int SpecialJudger(const char *sysInput, const char *usrOutput)
+{
+    spjPid = fork();
+    if (spjPid < 0)
+    {
+        return DIFF;
+    }
+    else if (spjPid == 0)
+    {
+        struct rlimit limit;
+        limit.rlim_cur = limit.rlim_max = 0;
+        setrlimit(RLIMIT_FSIZE, &limit); //禁止生成磁盘文件
+        char *const path = fileInfo.specialJudgeExe;
+        char *const argv[] = {path, fileInfo.sysOutputFileName, fileInfo.usrOutputFileName, NULL};
+        execve(path, argv, NULL);
+        exit(123);
+    }
+    else
+    {
+        alarm(20);
+        signal(SIGALRM, timeout_kill);
+        int status;
+        wait(&status);
+        if (WIFEXITED(status) != 0) //正常退出
+        {
+            if (WEXITSTATUS(status) == 123)
+            {
+                struct ArgsDumpAndExit args;
+                BuildSysErrorExitArgs(&args, "spj execve fail");
+                FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
+            }
+            else if (WEXITSTATUS(status) == 0)
+                return SAME;
+            else
+                return DIFF;
+        }
+        else
+        {
+            struct ArgsDumpAndExit args;
+            BuildSysErrorExitArgs(&args, "spj pid exit abnormal");
+            FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
+        }
+    }
+}
+
 void CheckerCompare(const void *params)
 {
     assert(params != NULL);
     int isSpecial = 0;
+    if (fileInfo.specialJudgeExe != NULL)
+        isSpecial = 1;
     struct ArgsDumpAndExit *args = (struct ArgsDumpAndExit *)params;
 
     int retCode = DIFF;
     if (isSpecial) //special judge
     {
-        ;
+        retCode = SpecialJudger(fileInfo.sysInputFileName, fileInfo.usrOutputFileName);
     }
     else
     {
@@ -98,6 +167,13 @@ void CheckerCompare(const void *params)
         args->resultString = "AC";
     }
     FSMEventHandler(&fsm, CondProgramNeedToExit, args);
+}
+
+void BuildSysErrorExitArgs(struct ArgsDumpAndExit *args, const char *reason)
+{
+    ArgsDumpAndExitInit(args);
+    args->systemStatus = EXIT_SYSTEM_ERROR;
+    args->reason = reason;
 }
 
 void ArgsDumpAndExitInit(struct ArgsDumpAndExit *args)
