@@ -88,8 +88,8 @@ void InitResource(int argc, char *args[])
               sourceFile, runTime, runMemory, runDisk, exeFile,
               sysInputFile, sysOutputFile, usrOutputFile, resultJsonFile, specialJudgeExe);
     resouceConfig.time = runTime;
-    resouceConfig.memory = runMemory;
-    resouceConfig.disk = runDisk;
+    resouceConfig.memory = runMemory*KB_TO_BYTES;
+    resouceConfig.disk = runDisk*KB_TO_BYTES;
     resouceConfig.language = language;
 
     fileInfo.path = "/";
@@ -108,8 +108,8 @@ void InitResource(int argc, char *args[])
 
 #ifdef DEBUG
     resouceConfig.time = 2000;
-    resouceConfig.memory = 65536;
-    resouceConfig.disk = 65536;
+    resouceConfig.memory = 65536*KB_TO_BYTES;
+    resouceConfig.disk = 65536*KB_TO_BYTES;
     resouceConfig.language = "g++";
     fileInfo.path = "/";
     /*
@@ -127,7 +127,7 @@ void InitResource(int argc, char *args[])
     fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/main.cpp";
     fileInfo.sysOutputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_output.txt";
     fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/result_cpp_1.json";
-    fileInfo.specialJudgeExe = "/home/naoh/Program/go/src/sandbox/output/CPP/spj";
+    //fileInfo.specialJudgeExe = "/home/naoh/Program/go/src/sandbox/output/CPP/spj";
 
     LoadConfig(&configNode, resouceConfig.language);
     printf("%s %d %s %s\n", configNode.language, configNode.needCompile,
