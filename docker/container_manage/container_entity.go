@@ -154,11 +154,13 @@ func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.Co
 		args.Time, args.Memory, args.Disk,
 		userExeName, sysInputFileInDocker, sysOutputFileInDocker, userOutputFile,
 		resultJsonFileInDocker)
-	log.Printf("runner Str:%s\n", exeRunnerStr)
-	unionChmodAndExeRunner := fmt.Sprintf("%s && %s", chmodStr, exeRunnerStr)
+	log.Printf("runner Str in docker:%s\n", exeRunnerStr)
+	//删除临时文件夹
+	rmDirStr := fmt.Sprintf("rm -rf %s", absolutePath)
+	unionChmodAndExeRunner := fmt.Sprintf("%s && %s && %s", chmodStr, exeRunnerStr, rmDirStr)
 	_ = ce.RunCmdInContainer(ctx, unionChmodAndExeRunner)
 
-	//获取docker内部的json文件
-	//resultJsonName := fmt.Sprintf("./test/result_%s.json", utils.GenRandomStr(10))
+	//获取生成的json文件
+	//resultJsonName := fmt.Sprintf("./test/result_%s.json", utils.GenRandomStr(10)) // for test
 	ce.CopyFileFromContainer(ctx, resultJsonFileInDocker, args.ResultJsonFile)
 }
