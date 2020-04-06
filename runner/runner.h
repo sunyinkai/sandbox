@@ -4,7 +4,7 @@
 struct ArgsParAfterRun
 {
     int childExitStatus;  //子进程退出状态
-    long maxMemUsage;     //最大内存使用量
+    long childMemUsage;     //最大内存使用量
     struct rusage rusage; //子进程资源使用情况
 };
 

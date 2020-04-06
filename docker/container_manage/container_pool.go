@@ -59,15 +59,15 @@ func (cp *ContainerPool) CreateContainerEntity(ctx context.Context, image string
 		AttachStderr:    true,
 		OpenStdin:       true,
 		User:            "0",  //uid
-		NetworkDisabled: true, //ban掉网络
+		//NetworkDisabled: true, //ban掉网络
 	}
 
 	//host.config
-	availableCap := []string{"CAP_SETUID", "CAP_SETGID", "CAP_CHOWN", "CAP_KILL"} //限制root能力
+	//availableCap := []string{"CAP_SETUID", "CAP_SETGID", "CAP_CHOWN", "CAP_KILL"} //限制root能力
 
 	hostConfig := &container.HostConfig{
 		PortBindings: portBind,
-		Capabilities: availableCap,
+		//Capabilities: availableCap,
 		Resources: container.Resources{
 			Memory:     1e8,
 			MemorySwap: 1e8,

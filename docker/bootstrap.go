@@ -12,7 +12,7 @@ import (
 func main() {
 	ctx := context.Background()
 	cp := container_manage.ContainerPool{}
-	cp.Init(ctx, 2)
+	cp.Init(ctx, 1)
 	mq.Init()
 	log.Printf("Init Finish")
 	for {

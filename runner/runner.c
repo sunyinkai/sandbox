@@ -80,8 +80,8 @@ void Run(const void *params)
 void ChildInit(const void *params)
 {
     //设置资源限制
-    setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 2000) / 1000);
-    setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10*MB_TO_BYTES);
+    setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 1000) / 1000);
+    setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10 * MB_TO_BYTES);
     //   setProgressLimit(RLIMIT_NPROC, 10);
     setProgressLimit(RLIMIT_FSIZE, resouceConfig.disk + 10240);
     //  setProgressLimit(RLIMIT_CORE,0);
@@ -106,8 +106,9 @@ void ChildInit(const void *params)
     free(outfileName);
 
     // 修改uid和gid
-    setuid(65529);
     setgid(65529);
+    setuid(65529);
+    clog_info(CLOG(UNIQ_LOG_ID),"uid:%d,gid:%d\n",getuid(),getgid());
 
     //安装system_call filter
     install_seccomp_filter();
@@ -122,8 +123,9 @@ void ChildRun(const void *params)
     char *argvStr = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
     //获取程序路径
     int len = strlen(argvStr);
-    char *path = (char *)malloc(sizeof(len));
-    for (int i = 0; i < len; ++i)
+    char *path = (char *)malloc(len);
+    clog_info(CLOG(UNIQ_LOG_ID), "the argvLen:%d,configRunArgs:%s,str:%s", len,configNode.runArgs, argvStr);
+    for (int i = 0; i <= len; ++i)
     {
         if (isspace(argvStr[i]))
         {
@@ -139,7 +141,7 @@ void ChildRun(const void *params)
     if (ret == -1)
     {
         extern int errno;
-        clog_error(CLOG(UNIQ_LOG_ID), "execvp error,errno:%d,errnoinfo:%s", errno, strerror(errno));
+        clog_error(CLOG(UNIQ_LOG_ID), "execve error,errno:%d,errnoinfo:%s", errno, strerror(errno));
         exit(EXEC_ERROR_EXIT_CODE);
     }
 }
@@ -157,19 +159,14 @@ void ParMonitor(const void *params)
     struct rusage rusage;
     int retCode = wait4(fpid, &childStatus, WUNTRACED, &rusage);
     long childMemUse = (long)rusage.ru_minflt * (sysconf(_SC_PAGE_SIZE) / KB_TO_BYTES); //缺页中断数量
-    clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,normal_exited %d,status is %d", fpid, retCode, WIFEXITED(childStatus), childStatus);
-
-    if (WIFEXITED(childStatus) != 0 && WEXITSTATUS(childStatus) == EXEC_ERROR_EXIT_CODE)
-    {
-        struct ArgsDumpAndExit args;
-        BuildSysErrorExitArgs(&args, "runner child exec failed");
-        FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
-    }
+    clog_info(CLOG(UNIQ_LOG_ID), "child pid is %d,retCode is %d,WIFEXITED %d,WEXITSTATUS %d,WIFSINALED:%d,WTERMSIG:%d",
+              fpid, retCode, WIFEXITED(childStatus), WEXITSTATUS(childStatus),
+              WIFSIGNALED(childStatus), WTERMSIG(childStatus));
 
     struct ArgsParAfterRun args;
     args.childExitStatus = childStatus;
     args.rusage = rusage;
-    args.maxMemUsage = childMemUse;
+    args.childMemUsage = childMemUse;
     FSMEventHandler(&fsm, CondRunnerChildExit, &args);
 }
 
@@ -178,49 +175,59 @@ void ParAfterRun(const void *params)
 {
     assert(params != NULL);
     struct ArgsParAfterRun *args = (struct ArgsParAfterRun *)params;
-    printf("user memory usage:%ld KB\n", args->maxMemUsage);
-    clog_info(CLOG(UNIQ_LOG_ID), "user memory usage:%ld KB", args->maxMemUsage);
+    clog_info(CLOG(UNIQ_LOG_ID), "user memory usage:%ld KB", args->childMemUsage);
 
     struct timeval user, system;
     user = args->rusage.ru_utime;
     system = args->rusage.ru_stime;
     long usedTime = (user.tv_sec + system.tv_sec) * 1000 + (user.tv_usec + system.tv_usec) / 1000;
-    printf("user time:%ld ms\n", user.tv_sec * 1000 + user.tv_usec / 1000);
-    printf("system time:%ld ms \n", system.tv_sec * 1000 + system.tv_usec / 1000);
-    printf("total UsedTime:%ld ms\n", usedTime);
     clog_info(CLOG(UNIQ_LOG_ID), "user time usage:%ld ms", usedTime);
 
     struct ArgsDumpAndExit argsDumpAndExit;
     ArgsDumpAndExitInit(&argsDumpAndExit);
     argsDumpAndExit.timeUsage = usedTime;
-    argsDumpAndExit.memoryUsage = args->maxMemUsage;
+    argsDumpAndExit.memoryUsage = args->childMemUsage;
     argsDumpAndExit.systemStatus = EXIT_SYSTEM_SUCCESS;
-    if (args->maxMemUsage > resouceConfig.memory) //MLE
+
+    if (args->childMemUsage > resouceConfig.memory) //MLE
     {
         argsDumpAndExit.judgeStatus = EXIT_JUDGE_MLE;
         argsDumpAndExit.resultString = "MLE";
         FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
-        return;
     }
     else if (usedTime > resouceConfig.time) //TLE
     {
         argsDumpAndExit.judgeStatus = EXIT_JUDGE_TLE;
         argsDumpAndExit.resultString = "TLE";
         FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
-        return;
     }
-    else if (args->childExitStatus == 0) //需要比较结果
+
+    if (WIFEXITED(args->childExitStatus) != 0) //normal exit
     {
-        argsDumpAndExit.judgeStatus = EXIT_JUDGE_WA; //先初始化为WA
-        argsDumpAndExit.resultString = "WA";
-        FSMEventHandler(&fsm, CondResultNeedCompare, &argsDumpAndExit);
-        return;
+        int childExitStatus = WEXITSTATUS(args->childExitStatus);
+        if (childExitStatus == EXEC_ERROR_EXIT_CODE) //exec fail
+        {
+            BuildSysErrorExitArgs(&argsDumpAndExit, "runner child exec failed");
+            FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
+        }
+        else if (childExitStatus == 0) // to be compare
+        {
+            argsDumpAndExit.judgeStatus = EXIT_JUDGE_WA;
+            argsDumpAndExit.resultString = "WA";
+            FSMEventHandler(&fsm, CondResultNeedCompare, &argsDumpAndExit);
+        }
+        else
+        {
+            argsDumpAndExit.judgeStatus = EXIT_JUDGE_RE;
+            argsDumpAndExit.resultString = "RE";
+            argsDumpAndExit.reason = "unexpected exit code";
+            FSMEventHandler(&fsm, CondResultNeedCompare, &argsDumpAndExit);
+        }
     }
-    else //RE
+    else //stop by sinal
     {
         argsDumpAndExit.judgeStatus = EXIT_JUDGE_RE;
         argsDumpAndExit.resultString = "RE";
         FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
-        return;
     }
 }

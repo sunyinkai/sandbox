@@ -53,6 +53,7 @@ void Compile(const void *params)
         clog_info(CLOG(UNIQ_LOG_ID), "the compile cmd is %s", cmd);
         char *argv[] = {"/bin/bash", "-c", cmd, NULL};
         int ret = execvp("/bin/bash", argv);
+        printf("compile ret:%d\n", ret);
         if (ret == -1)
         {
             extern int errno;
@@ -60,7 +61,7 @@ void Compile(const void *params)
             exit(EXEC_ERROR_EXIT_CODE);
         }
     }
-    else
+    else //父进程
     {
         signal(SIGALRM, timeout_kill); //设置编译超时时间
         alarm(COMPILE_TIME_OUT);
@@ -75,6 +76,18 @@ void Compile(const void *params)
                 BuildSysErrorExitArgs(&args, "compile progress execve error");
                 FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
             }
+            else if (WEXITSTATUS(status) != 0)
+            {
+                struct ArgsDumpAndExit args;
+                ArgsDumpAndExitInit(&args);
+                args.judgeStatus = EXIT_JUDGE_CE;
+                args.resultString = "CE";
+                FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
+            }
+            else
+            {
+                FSMEventHandler(&fsm, CondCompileFinish, NULL);
+            }
         }
         else
         {
@@ -82,7 +95,5 @@ void Compile(const void *params)
             BuildSysErrorExitArgs(&args, "compile progress exit abnormal");
             FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
         }
-        FSMEventHandler(&fsm, CondCompileFinish, NULL);
-        return;
     }
 }

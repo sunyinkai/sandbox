@@ -1,6 +1,6 @@
 # install g++,gcc,python
 # usage: docker build -t myimages .
-FROM ubuntu:latest
+FROM ubuntu:xenial
 MAINTAINER yinkaisun@gmail.com
 RUN apt-get update && \
     apt-get -y install g++ && \

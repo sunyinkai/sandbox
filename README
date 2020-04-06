@@ -11,3 +11,8 @@ step4: 与标准答案进行比较，返回结果 </br>
   ------- include: 引用的代码,如cJSON,clog </br>
 ----   docker: docker管理部分,将input,output传入进去
 ----   build_image:构建镜像,dockerfile
+
+
+调试:
+strace 系统调用调试工具
+/usr/include/x86_64-linux-gnu/asm/unistd_64.h 系统调用号

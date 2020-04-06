@@ -34,20 +34,6 @@ type ContainerEntity struct {
 	randStr    string // 随机字符串
 }
 
-func (ce *ContainerEntity) Acquire() {
-	ce.isOccupied = true
-}
-
-func (ce *ContainerEntity) Release() {
-	ce.isOccupied = false
-}
-
-func (ce *ContainerEntity) IsBusy() bool {
-	return ce.isOccupied == true
-}
-func (ce *ContainerEntity) IsFree() bool {
-	return ce.IsBusy() == false
-}
 func (ce *ContainerEntity) Reset() {
 	ce.isOccupied = false
 	ce.randStr = ""
