@@ -2,14 +2,12 @@ package container_manage
 
 import (
 	"context"
-	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"log"
 	"sandbox/docker/json_def"
 	"sandbox/docker/utils"
-	"time"
 )
 
 type ContainerPool struct {
@@ -53,22 +51,20 @@ func (cp *ContainerPool) CreateContainerEntity(ctx context.Context, image string
 	}
 
 	//host.config
-	//availableCap := []string{"CAP_SETUID", "CAP_SETGID", "CAP_CHOWN"} //限制root能力
-
+	availableCap := []string{"CAP_SETUID", "CAP_SETGID", "CAP_CHOWN"} //限制root能力
 	hostConfig := &container.HostConfig{
-		//Capabilities: availableCap,
+		Capabilities: availableCap,
 		Resources: container.Resources{
 			Memory:     256 * 1024 * 1024, //256M
 			MemorySwap: 256 * 1024 * 1024, //0M
 		}, // 限制内存使用
 	}
 
-	containerName := fmt.Sprintf("%d", time.Now().Unix())
 	cont, err := cli.ContainerCreate(
 		ctx,
 		containerConfig,
 		hostConfig,
-		nil, containerName)
+		nil,"")
 	if err != nil {
 		panic(err)
 	}
