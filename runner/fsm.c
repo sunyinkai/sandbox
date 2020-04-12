@@ -1,68 +1,19 @@
 #include "fsm.h"
 #include <stdlib.h>
+#include <assert.h>
 
 struct FSMEdge transferTable[] = {
-    {
-        OnBootstrap,
-        CondNeedCompile,
-        OnCompiler,
-        CompilerLogic,
-    },
-    {
-        OnBootstrap,
-        CondNoNeedCompile,
-        OnRunner,
-        RunnerLogic,
-    },
-    {
-        OnCompiler,
-        CondCompileFinish,
-        OnRunner,
-        RunnerLogic,
-    },
-    {
-        OnRunner,
-        CondRunnerIsChild,
-        OnExecutor,
-        ExecutorLogic,
-    },
-    {
-        OnRunner,
-        CondResultNeedCompare,
-        OnChecker,
-        CheckerLoigc,
-    },
-    //所有状态都可以直接转移到退出状态,即 *----CondProgramNeedToExit---->OnProgramEnd
-    {
-        OnBootstrap,
-        CondProgramNeedToExit,
-        OnExit,
-        ExitLogic,
-    },
-    {
-        OnCompiler,
-        CondProgramNeedToExit,
-        OnExit,
-        ExitLogic,
-    },
-    {
-        OnRunner,
-        CondProgramNeedToExit,
-        OnExit,
-        ExitLogic,
-    },
-    {
-        OnExecutor,
-        CondProgramNeedToExit,
-        OnExit,
-        ExitLogic,
-    },
-    {
-        OnChecker,
-        CondProgramNeedToExit,
-        OnExit,
-        ExitLogic,
-    },
+    {OnBootstrap,CondNeedCompile,OnCompiler,CompilerLogic,},
+    {OnBootstrap,CondNoNeedCompile,OnRunner,RunnerLogic,},
+    {OnCompiler,CondCompileFinish,OnRunner,RunnerLogic,},
+    {OnRunner,CondRunnerIsChild,OnExecutor,ExecutorLogic,},
+    {OnRunner,CondResultNeedCompare,OnChecker,CheckerLoigc,},
+    //所有状态都可以直接转移到退出状态
+    {OnBootstrap,CondProgramNeedToExit,OnExit,ExitLogic,},
+    {OnCompiler,CondProgramNeedToExit,OnExit,ExitLogic,},
+    {OnRunner,CondProgramNeedToExit,OnExit,ExitLogic,},
+    {OnExecutor,CondProgramNeedToExit,OnExit,ExitLogic,},
+    {OnChecker,CondProgramNeedToExit,OnExit,ExitLogic,},
 };
 
 //注册状态转移表
@@ -96,18 +47,12 @@ void FSMEventHandler(struct FSM *pFSM, enum Event event, void *params)
             break;
         }
     }
-    if (isFind)
+    assert(isFind);
+    //注意与切换状态的顺序
+    FSMTransfer(pFSM, nextState);
+    if (func)
     {
-        //注意与切换状态的顺序
-        FSMTransfer(pFSM, nextState);
-        if (func)
-        {
-            func(params);
-        }
-    }
-    else
-    {
-        printf("Not find such event\n");
+        func(params);
     }
 }
 
@@ -130,13 +75,22 @@ int AddFuncToList(struct FuncPointerNode **fpn, FuncPointer func)
 
 void FuncListRun(struct FuncPointerNode *fpn, const void *param)
 {
-    const void *inArgs = param;
+    const void *Args = param;
     while (fpn != NULL)
     {
         FuncPointer func = fpn->func;
-        inArgs = func(inArgs);
+        Args = func(Args);
         fpn = fpn->next;
     }
 }
 
+void DestroyFuncList(struct FuncPointerNode*fpn)
+{
+    while(fpn != NULL)
+    {
+        struct FuncPointerNode *next = fpn->next;
+        free(fpn) , fpn=NULL;
+        fpn = next;
+    }
+}
 struct FSM fsm;

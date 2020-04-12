@@ -227,6 +227,7 @@ void CheckerLoigc(const void*params)
     for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
         AddFuncToList(&objFuncList, funcList[i]);
     FuncListRun(objFuncList,params);
+    DestroyFuncList(objFuncList);
 }
 
 void ExitLogic(const void*params)
@@ -236,4 +237,5 @@ void ExitLogic(const void*params)
     for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
         AddFuncToList(&objFuncList, funcList[i]);
     FuncListRun(objFuncList,params);
+    DestroyFuncList(objFuncList);
 }

@@ -4,31 +4,39 @@
 #include <stdio.h>
 //函数调用链代码
 typedef void* (*FuncPointer)(const void*);
+
 struct FuncPointerNode{
     FuncPointer func;
     struct FuncPointerNode* next;
 };
-int AddFuncToList(struct FuncPointerNode **fpn,FuncPointer func);
-void FuncListRun(struct FuncPointerNode *fpn,const void*param);
 
+//将函数加入调用链中
+extern int AddFuncToList(struct FuncPointerNode **fpn,FuncPointer func);
 
+//运行调用链
+extern void FuncListRun(struct FuncPointerNode *fpn,const void*param);
+
+//销毁调用链
+extern void DestroyFuncList(struct FuncPointerNode*fpn);
+
+//状态机部分的代码
 struct FSMEdge
 {
-    int curState;
-    int event;
-    int nextState;
-    void (*fun)(const void*);
+    int curState; //现态
+    int event; //事件
+    int nextState; //次态
+    void (*fun)(const void*); //执行的动作
 };
 
 //状态
 enum RunnerState
 {
-    OnBootstrap,
-    OnCompiler,
-    OnRunner,
-    OnExecutor,
-    OnChecker,
-    OnExit,
+    OnBootstrap, //启动
+    OnCompiler,  //编译
+    OnRunner,    //父进程
+    OnExecutor,  //子进程
+    OnChecker,   //比对结果
+    OnExit,     //退出
 };
 
 //事件
@@ -38,11 +46,11 @@ enum Event
     CondNoNeedCompile,     //事件:不需要编译
     CondCompileFinish,     //事件:编译完成
     CondRunnerIsChild,     //事件:是子进程
-    CondResultNeedCompare, //事件:计算结果需要比较
+    CondResultNeedCompare, //事件:需要比较输出
     CondProgramNeedToExit, //事件:进程需要退出
 };
 
-//函数
+//动作
 extern void BootStrapLogic(const void*);
 extern void CompilerLogic(const void*);
 extern void RunnerLogic(const void*);
@@ -50,8 +58,7 @@ extern void ExecutorLogic(const void*);
 extern void CheckerLoigc(const void*);
 extern void ExitLogic(const void*);
 
-
-//全部变量:转移argsDumpAndExit
+//状态转移表
 extern struct FSMEdge transferTable[];
 
 //全局变量:状态机

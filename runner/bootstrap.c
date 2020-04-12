@@ -144,6 +144,7 @@ void BootStrapLogic(const void *params)
     for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
         AddFuncToList(&objFuncList, funcList[i]);
     FuncListRun(objFuncList,params);
+    DestroyFuncList(objFuncList);
 }
 
 int main(int argc, char *args[])
