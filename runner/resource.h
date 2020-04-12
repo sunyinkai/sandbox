@@ -25,12 +25,12 @@ struct FileInfo
 };
 extern struct FileInfo fileInfo;
 
-//读取这门语言相关的配置档
 struct DataItem
 {
     void *data;
     struct DataItem *next;
 };
+
 struct ConfigNode
 {
     char *language;

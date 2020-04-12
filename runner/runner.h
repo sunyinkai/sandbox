@@ -12,9 +12,9 @@ static int setProgressLimit(int resource, int val);
 static void time_limit_kill(int sigId);
 
 //runner×´Ì¬»ú
-extern void ChildInit(const void *params);
-extern void ChildRun(const void *params);
-extern void ParMonitor(const void *params);
-extern void ParAfterRun(const void *params);
+extern void *ChildInit(const void *params);
+extern void *ChildRun(const void *params);
+extern void *ParMonitor(const void *params);
+extern void *ParAfterRun(const void *params);
 
 #endif

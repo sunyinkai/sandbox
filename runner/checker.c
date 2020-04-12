@@ -137,7 +137,7 @@ int SpecialJudger(const char *sysInput, const char *usrOutput)
     }
 }
 
-void CheckerCompare(const void *params)
+void* CheckerCompare(const void *params)
 {
     assert(params != NULL);
     struct ArgsDumpAndExit *args = (struct ArgsDumpAndExit *)params;
@@ -168,6 +168,7 @@ void CheckerCompare(const void *params)
         args->resultString = "AC";
     }
     FSMEventHandler(&fsm, CondProgramNeedToExit, args);
+    return NULL;
 }
 
 void BuildSysErrorExitArgs(struct ArgsDumpAndExit *args, const char *reason)
@@ -187,7 +188,7 @@ void ArgsDumpAndExitInit(struct ArgsDumpAndExit *args)
     args->resultString = "";
 }
 
-void DumpAndExit(const void *params)
+void* DumpAndExit(const void *params)
 {
     assert(params != NULL);
     struct ArgsDumpAndExit *args = (struct ArgsDumpAndExit *)params;
@@ -217,4 +218,22 @@ void DumpAndExit(const void *params)
         free(formatedJson);
     }
     exit(0);
+}
+
+void CheckerLoigc(const void*params)
+{
+    struct FuncPointerNode *objFuncList;
+    FuncPointer funcList[] = {CheckerCompare};
+    for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
+        AddFuncToList(&objFuncList, funcList[i]);
+    FuncListRun(objFuncList,params);
+}
+
+void ExitLogic(const void*params)
+{
+    struct FuncPointerNode *objFuncList=NULL;
+    FuncPointer funcList[] = {DumpAndExit};
+    for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
+        AddFuncToList(&objFuncList, funcList[i]);
+    FuncListRun(objFuncList,params);
 }

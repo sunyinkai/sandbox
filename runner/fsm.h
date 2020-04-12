@@ -2,27 +2,33 @@
 #define SANDBOX_FSM
 
 #include <stdio.h>
-//如果满足event事件,从curState状态切换到nextState,然后执行func函数
+//函数调用链代码
+typedef void* (*FuncPointer)(const void*);
+struct FuncPointerNode{
+    FuncPointer func;
+    struct FuncPointerNode* next;
+};
+int AddFuncToList(struct FuncPointerNode **fpn,FuncPointer func);
+void FuncListRun(struct FuncPointerNode *fpn,const void*param);
+
+
 struct FSMEdge
 {
     int curState;
     int event;
     int nextState;
-    void (*fun)(const void *);
+    void (*fun)(const void*);
 };
 
 //状态
 enum RunnerState
 {
-    OnProgramStart = 0,
-    OnCompilerCompile,
-    OnRunnerStart,
-    OnRunnerChildInit,
-    OnRunnerParMonitor,
-    OnRunnerChildRun,
-    OnRunnerParAfterRun,
-    OnCheckerCompare,
-    OnProgramEnd,
+    OnBootstrap,
+    OnCompiler,
+    OnRunner,
+    OnExecutor,
+    OnChecker,
+    OnExit,
 };
 
 //事件
@@ -31,28 +37,19 @@ enum Event
     CondNeedCompile = 0,   //事件:需要编译
     CondNoNeedCompile,     //事件:不需要编译
     CondCompileFinish,     //事件:编译完成
-    CondRunnerIsPar,       //事件:是父进程
     CondRunnerIsChild,     //事件:是子进程
-    CondRunnerAfterInit,   //事件:子进程初始化完毕
-    CondRunnerChildExit,   //事件:子进程退出
     CondResultNeedCompare, //事件:计算结果需要比较
     CondProgramNeedToExit, //事件:进程需要退出
 };
 
 //函数
+extern void BootStrapLogic(const void*);
+extern void CompilerLogic(const void*);
+extern void RunnerLogic(const void*);
+extern void ExecutorLogic(const void*);
+extern void CheckerLoigc(const void*);
+extern void ExitLogic(const void*);
 
-void ProgramRun(const void *);
-void Compile(const void *);
-
-void Run(const void *);
-void ChildInit(const void *);
-void ParMonitor(const void *);
-void ChildRun(const void *);
-void ParAfterRun(const void *);
-void Init(const void *);
-
-void CheckerCompare(const void *);
-void DumpAndExit(const void *);
 
 //全部变量:转移argsDumpAndExit
 extern struct FSMEdge transferTable[];

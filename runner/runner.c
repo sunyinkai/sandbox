@@ -54,8 +54,9 @@ static void time_limit_kill(int sigId)
 }
 
 //Runner起始函数
-void Run(const void *params)
+void *Run(const void *params)
 {
+    assert(params == NULL);
     int fpid = fork();
     if (fpid < 0)
     {
@@ -63,7 +64,6 @@ void Run(const void *params)
         BuildSysErrorExitArgs(&args, " in runProgress fork error");
         clog_error(CLOG(UNIQ_LOG_ID), "in runProgress fork error");
         FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
-        return;
     }
     else if (fpid == 0)
     {
@@ -72,13 +72,14 @@ void Run(const void *params)
     else
     {
         child_pid = fpid;
-        FSMEventHandler(&fsm, CondRunnerIsPar, NULL);
     }
+    return NULL;
 }
 
 //子进程初始化函数
-void ChildInit(const void *params)
+void *ChildInit(const void *params)
 {
+    assert(params == NULL);
     //设置资源限制
     setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 1000) / 1000);
     setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10 * MB_TO_BYTES);
@@ -108,23 +109,24 @@ void ChildInit(const void *params)
     // 修改uid和gid
     setgid(65529);
     setuid(65529);
-    clog_info(CLOG(UNIQ_LOG_ID),"uid:%d,gid:%d\n",getuid(),getgid());
+    clog_info(CLOG(UNIQ_LOG_ID), "uid:%d,gid:%d\n", getuid(), getgid());
 
     //安装system_call filter
     install_seccomp_filter();
-    FSMEventHandler(&fsm, CondRunnerAfterInit, NULL);
+    return NULL;
 }
 
 //子进程运行函数
-void ChildRun(const void *params)
+void *ChildRun(const void *params)
 {
+    assert(params == NULL);
     //获取命令执行参数
     char *tmp = ReplaceFlag(configNode.runArgs, "$SRC", fileInfo.sourceFileName);
     char *argvStr = ReplaceFlag(tmp, "$EXE", fileInfo.exeFileName);
     //获取程序路径
     int len = strlen(argvStr);
     char *path = (char *)malloc(len);
-    clog_info(CLOG(UNIQ_LOG_ID), "the argvLen:%d,configRunArgs:%s,str:%s", len,configNode.runArgs, argvStr);
+    clog_info(CLOG(UNIQ_LOG_ID), "the argvLen:%d,configRunArgs:%s,str:%s", len, configNode.runArgs, argvStr);
     for (int i = 0; i <= len; ++i)
     {
         if (isspace(argvStr[i]))
@@ -144,11 +146,14 @@ void ChildRun(const void *params)
         clog_error(CLOG(UNIQ_LOG_ID), "execve error,errno:%d,errnoinfo:%s", errno, strerror(errno));
         exit(EXEC_ERROR_EXIT_CODE);
     }
+    return NULL;
 }
 
 //父进程监听函数
-void ParMonitor(const void *params)
+void *ParMonitor(const void *params)
 {
+    assert(params == NULL);
+
     int fpid = child_pid;
     signal(SIGALRM, time_limit_kill); //注册超时杀死进程事件
     int runKillTime = (resouceConfig.time + 2000) / 1000;
@@ -163,15 +168,15 @@ void ParMonitor(const void *params)
               fpid, retCode, WIFEXITED(childStatus), WEXITSTATUS(childStatus),
               WIFSIGNALED(childStatus), WTERMSIG(childStatus));
 
-    struct ArgsParAfterRun args;
-    args.childExitStatus = childStatus;
-    args.rusage = rusage;
-    args.childMemUsage = childMemUse;
-    FSMEventHandler(&fsm, CondRunnerChildExit, &args);
+    struct ArgsParAfterRun *args = (struct ArgsParAfterRun *)malloc(sizeof(struct ArgsParAfterRun));
+    args->childExitStatus = childStatus;
+    args->rusage = rusage;
+    args->childMemUsage = childMemUse;
+    return args;
 }
 
 //运行结束函数OnParAfterRun
-void ParAfterRun(const void *params)
+void *ParAfterRun(const void *params)
 {
     assert(params != NULL);
     struct ArgsParAfterRun *args = (struct ArgsParAfterRun *)params;
@@ -230,4 +235,22 @@ void ParAfterRun(const void *params)
         argsDumpAndExit.resultString = "RE";
         FSMEventHandler(&fsm, CondProgramNeedToExit, &argsDumpAndExit);
     }
+}
+
+void RunnerLogic(const void *params)
+{
+    struct FuncPointerNode *objFuncList=NULL;
+    FuncPointer funcList[] = {Run, ParMonitor, ParAfterRun};
+    for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
+        AddFuncToList(&objFuncList, funcList[i]);
+    FuncListRun(objFuncList, params);
+}
+
+void ExecutorLogic(const void *params)
+{
+    struct FuncPointerNode *objFuncList=NULL;
+    FuncPointer funcList[] = {ChildInit, ChildRun};
+    for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
+        AddFuncToList(&objFuncList, funcList[i]);
+    FuncListRun(objFuncList, params);
 }

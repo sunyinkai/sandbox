@@ -35,8 +35,9 @@ void init_log(int uinqId, enum clog_level level)
     clog_set_level(uinqId, level);
 }
 
-void ProgramStart()
+void *ProgramStart(const void *param)
 {
+    assert(param==NULL);
     if (needCompile(resouceConfig.language))
     {
         FSMEventHandler(&fsm, CondNeedCompile, NULL);
@@ -45,6 +46,7 @@ void ProgramStart()
     {
         FSMEventHandler(&fsm, CondNoNeedCompile, NULL);
     }
+    return NULL;
 }
 
 //初始化资源配置函数
@@ -56,7 +58,7 @@ void InitResource(int argc, char *args[])
     init_log(UNIQ_LOG_ID, CLOG_INFO); //初始化日志信息
 
     FSMRegister(&fsm, transferTable); //注册转移表
-    fsm.curState = OnProgramStart;    //初始化当前状态
+    fsm.curState = OnBootstrap;    //初始化当前状态
 
 //从args获取变量
 #ifndef DEBUG
@@ -88,8 +90,8 @@ void InitResource(int argc, char *args[])
               sourceFile, runTime, runMemory, runDisk, exeFile,
               sysInputFile, sysOutputFile, usrOutputFile, resultJsonFile, specialJudgeExe);
     resouceConfig.time = runTime;
-    resouceConfig.memory = runMemory*KB_TO_BYTES;
-    resouceConfig.disk = runDisk*KB_TO_BYTES;
+    resouceConfig.memory = runMemory * KB_TO_BYTES;
+    resouceConfig.disk = runDisk * KB_TO_BYTES;
     resouceConfig.language = language;
 
     fileInfo.path = "/";
@@ -108,8 +110,8 @@ void InitResource(int argc, char *args[])
 
 #ifdef DEBUG
     resouceConfig.time = 2000;
-    resouceConfig.memory = 65536*KB_TO_BYTES;
-    resouceConfig.disk = 65536*KB_TO_BYTES;
+    resouceConfig.memory = 65536 * KB_TO_BYTES;
+    resouceConfig.disk = 65536 * KB_TO_BYTES;
     resouceConfig.language = "g++";
     fileInfo.path = "/";
     /*
@@ -135,10 +137,19 @@ void InitResource(int argc, char *args[])
 #endif
 }
 
+void BootStrapLogic(const void *params)
+{
+    struct FuncPointerNode *objFuncList=NULL;
+    FuncPointer funcList[] = {ProgramStart};
+    for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
+        AddFuncToList(&objFuncList, funcList[i]);
+    FuncListRun(objFuncList,params);
+}
+
 int main(int argc, char *args[])
 {
     InitResource(argc, args);
     //启动程序
-    ProgramStart();
+    BootStrapLogic(NULL);
     return 0;
 }

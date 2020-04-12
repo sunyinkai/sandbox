@@ -32,8 +32,9 @@ static void timeout_kill(int sigId)
     alarm(0);
 }
 
-void Compile(const void *params)
+void* Compile(const void *params)
 {
+    assert(params==NULL);
     //如果不需要编译
     extern struct ResourceConfig resouceConfig;
     compilePid = fork();
@@ -92,8 +93,21 @@ void Compile(const void *params)
         else
         {
             struct ArgsDumpAndExit args;
-            BuildSysErrorExitArgs(&args, "compile progress exit abnormal");
+            ArgsDumpAndExitInit(&args);
+            args.judgeStatus=EXIT_JUDGE_CE;
+            args.resultString="CE";
+            args.reason="compile progress exit abnormal";
             FSMEventHandler(&fsm, CondProgramNeedToExit, &args);
         }
     }
+    return NULL;
+}
+
+void CompilerLogic(const void*params)
+{
+    struct FuncPointerNode *objFuncList=NULL;
+    FuncPointer funcList[] = {Compile};
+    for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
+        AddFuncToList(&objFuncList, funcList[i]);
+    FuncListRun(objFuncList,params);
 }
