@@ -42,7 +42,7 @@ func (ce *ContainerEntity) Reset() {
 //启动容器
 func (ce *ContainerEntity) StartContainerEntity(ctx context.Context) {
 	if err := cli.ContainerStart(ctx, ce.contId, types.ContainerStartOptions{}); err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 }
 
@@ -50,7 +50,7 @@ func (ce *ContainerEntity) StartContainerEntity(ctx context.Context) {
 func (ce *ContainerEntity) StopContainer(ctx context.Context) {
 	timeout := time.Second * 0 //经过timeout发送kill信号
 	if err := cli.ContainerStop(ctx, ce.contId, &timeout); err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 }
 
@@ -69,18 +69,19 @@ func (ce *ContainerEntity) RunCmdInContainer(ctx context.Context, cmd string) er
 	}
 	exeId, err := cli.ContainerExecCreate(ctx, ce.contId, exeOpt)
 	if err != nil {
-		fmt.Println(err.Error())
-		panic(err)
+		log.Printf(err.Error())
+		return err
 	}
 	log.Printf("exe id is %s", exeId)
 	resp, er := cli.ContainerExecAttach(ctx, exeId.ID, types.ExecStartCheck{})
 	if er != nil {
-		fmt.Println(er.Error())
-		panic(err)
+		log.Println(er.Error())
+		return er
 	}
 	err = cli.ContainerExecStart(ctx, exeId.ID, types.ExecStartCheck{})
 	if err != nil {
 		log.Printf("exec error,err is %s", err.Error())
+		return err
 	}
 	_, _ = stdcopy.StdCopy(os.Stdout, os.Stdout, resp.Reader)
 
@@ -89,23 +90,26 @@ func (ce *ContainerEntity) RunCmdInContainer(ctx context.Context, cmd string) er
 }
 
 //往容器里复制文件
-func (ce *ContainerEntity) CopyFileToContainer(ctx context.Context, srcFile string, dstPath string) {
+func (ce *ContainerEntity) CopyFileToContainer(ctx context.Context, srcFile string, dstPath string) error {
 	var content io.Reader
 	targetFile := fmt.Sprintf("%s.tar", srcFile)
 	_ = utils.TarFile(srcFile, targetFile)
 	content, _ = os.Open(targetFile)
 	err := cli.CopyToContainer(ctx, ce.contId, dstPath, content, types.CopyToContainerOptions{AllowOverwriteDirWithFile: true})
 	if err != nil {
-		panic(err.Error())
+		log.Println(err.Error())
+		return err
 	}
+	return nil
 }
 
 //从容器里拷贝出文件
-func (ce *ContainerEntity) CopyFileFromContainer(ctx context.Context, srcFile string, dstPath string) {
+func (ce *ContainerEntity) CopyFileFromContainer(ctx context.Context, srcFile string, dstPath string) error {
 	readCloser, containerPathStatus, err := cli.CopyFromContainer(ctx, ce.contId, srcFile)
 	defer readCloser.Close()
 	if err != nil {
-		panic(err.Error())
+		log.Println(err.Error())
+		return err
 	}
 	log.Printf("reusult json status %+v", containerPathStatus)
 	buf := new(bytes.Buffer)
@@ -115,28 +119,48 @@ func (ce *ContainerEntity) CopyFileFromContainer(ctx context.Context, srcFile st
 	defer os.Remove(tmpTarFile)
 	_ = utils.Untar(tmpTarFile, dstPath)
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
+		return err
 	}
+	return nil
 }
 
 //将相关文件传入docker内,构建运行环境
 func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.CompileAndRunArgs) {
+	var err error
+	var result json_def.JudgeResult
 	//创建临时目录
 	absolutePath := fmt.Sprintf("%s/%s", DOCKERWORKPATH, ce.randStr)
 	mkdirStr := fmt.Sprintf("mkdir -p %s", absolutePath)
-	_ = ce.RunCmdInContainer(ctx, mkdirStr)
+	err = ce.RunCmdInContainer(ctx, mkdirStr)
+	if err != nil {
+		result.DumpErrorJson(args.ResultJsonFile, "run cmd in docker error")
+		return
+	}
 
 	//将文件拷贝到docker内去
-	ce.CopyFileToContainer(ctx, args.SourceFile, absolutePath)
-	ce.CopyFileToContainer(ctx, args.SysInputFile, absolutePath)
-	ce.CopyFileToContainer(ctx, args.SysOutputFile, absolutePath)
+	if err = ce.CopyFileToContainer(ctx, args.SourceFile, absolutePath); err != nil {
+		result.DumpErrorJson(args.ResultJsonFile, "copy file to docker error")
+		return
+	}
+	if err = ce.CopyFileToContainer(ctx, args.SysInputFile, absolutePath); err != nil {
+		result.DumpErrorJson(args.ResultJsonFile, "copy file to docker error")
+		return
+	}
+	if err = ce.CopyFileToContainer(ctx, args.SysOutputFile, absolutePath); err != nil {
+		result.DumpErrorJson(args.ResultJsonFile, "copy file to docker error")
+		return
+	}
 
 	//执行相关命令
 	chmodStr := fmt.Sprintf("chown root:root -R %s", absolutePath)
 
 	//将dockerExe以及config目录放到absolute目录下
 	copyExeAndConfigStr := fmt.Sprintf("cp %s %s && cp -r %s %s", DOCKEREXENAME, absolutePath, "config", absolutePath)
-	_ = ce.RunCmdInContainer(ctx, copyExeAndConfigStr)
+	if err = ce.RunCmdInContainer(ctx, copyExeAndConfigStr); err != nil {
+		result.DumpErrorJson(args.ResultJsonFile, "run cmd in docker error")
+		return
+	}
 
 	executableName := fmt.Sprintf("%s/%s", absolutePath, DOCKEREXENAME) //runner_FSM 所在位置
 	userExeName := fmt.Sprintf("%s/%s_%s", absolutePath, ce.randStr, args.Language)
@@ -158,9 +182,15 @@ func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.Co
 	//删除临时文件夹
 	rmDirStr := fmt.Sprintf("rm -rf %s", absolutePath)
 	unionChmodAndExeRunner := fmt.Sprintf("%s && %s && %s", chmodStr, exeRunnerStr, rmDirStr)
-	_ = ce.RunCmdInContainer(ctx, unionChmodAndExeRunner)
+	if err = ce.RunCmdInContainer(ctx, unionChmodAndExeRunner); err != nil {
+		result.DumpErrorJson(args.ResultJsonFile, "run cmd in docker error")
+		return
+	}
 
 	//获取生成的json文件
-	//resultJsonName := fmt.Sprintf("./test/result_%s.json", utils.GenRandomStr(10)) // for test
-	ce.CopyFileFromContainer(ctx, resultJsonFileInDocker, args.ResultJsonFile)
+	resultJsonName := fmt.Sprintf("./test/result_%s.json", utils.GenRandomStr(10)) // for test
+	if err = ce.CopyFileFromContainer(ctx, resultJsonFileInDocker, resultJsonName); err != nil {
+		result.DumpErrorJson(args.ResultJsonFile, "get json from docker error")
+		return
+	}
 }

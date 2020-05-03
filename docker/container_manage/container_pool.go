@@ -120,7 +120,7 @@ func (cp *ContainerPool) UpdateIndex(ctx context.Context, index int) {
 			}
 		}
 		if retry == maxRetryTime {
-			panic("reach max retry time")
+			panic("update index reach max retry time")
 		}
 	}
 }

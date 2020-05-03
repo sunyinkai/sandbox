@@ -18,6 +18,10 @@ func main() {
 	for {
 		valList := mq.RedisCli.BRPop(0, mq.MESSAGEQUEUEKEY)
 		v := valList.Val() //[mqName,str]
+		if len(v) != 2 {
+			log.Printf("task message format error!")
+			continue
+		}
 		jsonStr := v[1]
 		var compileAndRunArgs json_def.CompileAndRunArgs
 		if err := json.Unmarshal([]byte(jsonStr), &compileAndRunArgs); err != nil {

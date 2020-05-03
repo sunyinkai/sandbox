@@ -129,11 +129,11 @@ void InitResource(int argc, char *args[])
     fileInfo.sourceFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/main.cpp";
     fileInfo.sysOutputFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_output.txt";
     fileInfo.resultJsonFileName = "/home/naoh/Program/go/src/sandbox/output/CPP/result_cpp_1.json";
-    //fileInfo.specialJudgeExe = "/home/naoh/Program/go/src/sandbox/output/CPP/spj";
+    fileInfo.specialJudgeExe = "/home/naoh/Program/go/src/sandbox/output/CPP/spj";
 
     LoadConfig(&configNode, resouceConfig.language);
-    printf("%s %d %s %s\n", configNode.language, configNode.needCompile,
-           configNode.compileArgs, configNode.runArgs);
+    //printf("%s %d %s %s\n", configNode.language, configNode.needCompile,
+     //      configNode.compileArgs, configNode.runArgs);
 #endif
 }
 
