@@ -24,7 +24,7 @@ fsm.o:fsm.c fsm.h
 	gcc -g -c fsm.c -o fsm.o
 
 bootstrap.o:bootstrap.c
-	gcc -g -DDEBUG -c  bootstrap.c  -o bootstrap.o
+	gcc -g -c  bootstrap.c  -o bootstrap.o
 
 clean:
 	/bin/rm -rf runner

@@ -8,6 +8,7 @@ import (
 	"log"
 	"sandbox/docker/json_def"
 	"sandbox/docker/utils"
+	"time"
 )
 
 type ContainerPool struct {
@@ -64,7 +65,7 @@ func (cp *ContainerPool) CreateContainerEntity(ctx context.Context, image string
 		ctx,
 		containerConfig,
 		hostConfig,
-		nil,"")
+		nil, "")
 	if err != nil {
 		panic(err)
 	}
@@ -132,5 +133,20 @@ func (cp *ContainerPool) AddTask(ctx context.Context, compileAndRunArgs json_def
 	}()
 	cp.UpdateIndex(ctx, index)
 	cp.containerList[index].randStr = utils.GenRandomStr(20)
-	cp.containerList[index].BuildEnvAndRun(ctx, &compileAndRunArgs)
+	funcWrapper := func() chan int {
+		ch := make(chan int, 1)
+		go func() {
+			cp.containerList[index].BuildEnvAndRun(ctx, &compileAndRunArgs)
+			ch <- 1
+		}()
+		return ch
+	}
+	JobTimeOut := 20 * time.Second
+	select {
+	case <-funcWrapper():
+		log.Printf("funcWrapper return in time")
+	case <-time.After(JobTimeOut): //任务超时停止docker
+		log.Printf("funcWrapper return timeout,stop container")
+		cp.containerList[index].StopContainer(ctx)
+	}
 }

@@ -186,6 +186,10 @@ func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.Co
 		result.DumpErrorJson(args.ResultJsonFile, "run cmd in docker error")
 		return
 	}
+	////timeout test
+	//if err := ce.RunCmdInContainer(ctx, "sleep 1000"); err != nil {
+	//	panic(err)
+	//}
 
 	//获取生成的json文件
 	resultJsonName := fmt.Sprintf("./test/result_%s.json", utils.GenRandomStr(10)) // for test
