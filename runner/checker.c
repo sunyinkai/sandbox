@@ -222,7 +222,7 @@ void* DumpAndExit(const void *params)
 
 void CheckerLoigc(const void*params)
 {
-    struct FuncPointerNode *objFuncList;
+    struct FuncPointerNode *objFuncList=NULL; //shit,there must be == NULL
     FuncPointer funcList[] = {CheckerCompare};
     for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
         AddFuncToList(&objFuncList, funcList[i]);

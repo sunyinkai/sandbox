@@ -93,6 +93,7 @@ func (ce *ContainerEntity) RunCmdInContainer(ctx context.Context, cmd string) er
 func (ce *ContainerEntity) CopyFileToContainer(ctx context.Context, srcFile string, dstPath string) error {
 	var content io.Reader
 	targetFile := fmt.Sprintf("%s.tar", srcFile)
+	defer os.Remove(targetFile)
 	_ = utils.TarFile(srcFile, targetFile)
 	content, _ = os.Open(targetFile)
 	err := cli.CopyToContainer(ctx, ce.contId, dstPath, content, types.CopyToContainerOptions{AllowOverwriteDirWithFile: true})
@@ -151,6 +152,13 @@ func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.Co
 		result.DumpErrorJson(args.ResultJsonFile, "copy file to docker error")
 		return
 	}
+	// special judge 文件
+	if len(args.SpecialJudgeFile) > 0 {
+		if err = ce.CopyFileToContainer(ctx, args.SpecialJudgeFile, absolutePath); err != nil {
+			result.DumpErrorJson(args.ResultJsonFile, "copy file to docker error")
+			return
+		}
+	}
 
 	//执行相关命令
 	chmodStr := fmt.Sprintf("chown root:root -R %s", absolutePath)
@@ -173,11 +181,22 @@ func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.Co
 	sysOutputFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SysOutputFile))
 	usrSourceFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SourceFile))
 	resultJsonFileInDocker := fmt.Sprintf("%s/%s_result.json", DOCKERWORKPATH, ce.randStr)
-	exeRunnerStr := fmt.Sprintf("%s %s %s %d %d %d %s %s %s %s %s",
-		executableName, args.Language, usrSourceFileInDocker,
-		args.Time, args.Memory, args.Disk,
-		userExeName, sysInputFileInDocker, sysOutputFileInDocker, userOutputFile,
-		resultJsonFileInDocker)
+	var exeRunnerStr string
+	if len(args.SpecialJudgeFile) > 0 { //需要spj
+		SpecialJudgeFileInDocker := fmt.Sprintf("%s/%s", absolutePath, getFileNameInHost(args.SpecialJudgeFile))
+		exeRunnerStr = fmt.Sprintf("%s %s %s %d %d %d %s %s %s %s %s %s",
+			executableName, args.Language, usrSourceFileInDocker,
+			args.Time, args.Memory, args.Disk,
+			userExeName, sysInputFileInDocker, sysOutputFileInDocker, userOutputFile,
+			resultJsonFileInDocker, SpecialJudgeFileInDocker)
+	} else {
+		exeRunnerStr = fmt.Sprintf("%s %s %s %d %d %d %s %s %s %s %s",
+			executableName, args.Language, usrSourceFileInDocker,
+			args.Time, args.Memory, args.Disk,
+			userExeName, sysInputFileInDocker, sysOutputFileInDocker, userOutputFile,
+			resultJsonFileInDocker)
+	}
+
 	log.Printf("runner Str in docker:%s\n", exeRunnerStr)
 	//删除临时文件夹
 	rmDirStr := fmt.Sprintf("rm -rf %s", absolutePath)
@@ -186,13 +205,10 @@ func (ce *ContainerEntity) BuildEnvAndRun(ctx context.Context, args *json_def.Co
 		result.DumpErrorJson(args.ResultJsonFile, "run cmd in docker error")
 		return
 	}
-	////timeout test
-	//if err := ce.RunCmdInContainer(ctx, "sleep 1000"); err != nil {
-	//	panic(err)
-	//}
 
 	//获取生成的json文件
-	resultJsonName := fmt.Sprintf("./test/result_%s.json", utils.GenRandomStr(10)) // for test
+	//resultJsonName := fmt.Sprintf("./test/result_%s.json", utils.GenRandomStr(10)) // for test
+	resultJsonName := args.ResultJsonFile
 	if err = ce.CopyFileFromContainer(ctx, resultJsonFileInDocker, resultJsonName); err != nil {
 		result.DumpErrorJson(args.ResultJsonFile, "get json from docker error")
 		return

@@ -83,10 +83,10 @@ void *ChildInit(const void *params)
     //设置资源限制
     setProgressLimit(RLIMIT_CPU, (resouceConfig.time + 1000) / 1000);
     setProgressLimit(RLIMIT_AS, resouceConfig.memory + 10 * MB_TO_BYTES);
-    //   setProgressLimit(RLIMIT_NPROC, 10);
+    setProgressLimit(RLIMIT_NPROC, 10);
     setProgressLimit(RLIMIT_FSIZE, resouceConfig.disk + 10240);
-    //  setProgressLimit(RLIMIT_CORE,0);
-    //   setProgressLimit(RLIMIT_NOFILE,20);
+    setProgressLimit(RLIMIT_CORE, 0);
+    setProgressLimit(RLIMIT_NOFILE, 20);
 
     //重定向IO
     int sizeInFileSize = strlen(fileInfo.path) + strlen(fileInfo.sysInputFileName) + 10;
@@ -100,7 +100,10 @@ void *ChildInit(const void *params)
     int openFlags = O_WRONLY | O_CREAT | O_TRUNC;
     int write_fd = open(outfileName, openFlags, filePerms);
     //int erro_fd = open("/dev/null",O_WRONLY);
+    printf("infilename:%s,outfileName:%s\n", infileName, outfileName);
+    close(STDIN_FILENO);
     dup2(read_fd, STDIN_FILENO);
+    close(STDOUT_FILENO);
     dup2(write_fd, STDOUT_FILENO);
     //dup2(erro_fd, STDERR_FILENO);
     free(infileName);
@@ -126,7 +129,6 @@ void *ChildRun(const void *params)
     //获取程序路径
     int len = strlen(argvStr);
     char *path = (char *)malloc(len);
-    clog_info(CLOG(UNIQ_LOG_ID), "the argvLen:%d,configRunArgs:%s,str:%s", len, configNode.runArgs, argvStr);
     for (int i = 0; i <= len; ++i)
     {
         if (isspace(argvStr[i]))
@@ -136,14 +138,36 @@ void *ChildRun(const void *params)
         }
         path[i] = argvStr[i];
     }
-    char *argv[] = {argvStr, NULL};
-    clog_info(CLOG(UNIQ_LOG_ID), "the child run path:%s,argv:%s", path, argvStr);
+
+    //获取 char *argv[]
+    #define MAX_ARGS_CNT 10
+    #define MAX_ARGS_LEN 100
+    char *argv[MAX_ARGS_CNT]; //to be modified 
+    char arg[MAX_ARGS_LEN],id=0;
+    int top=0;
+    for (int i = 0; i <= len; ++i)
+    {
+        if(isspace(argvStr[i]))
+        {
+            arg[id++]='\0';
+            argv[top]=(char*)malloc(MAX_ARGS_LEN*sizeof(char));
+            strcpy(argv[top],arg);
+            id=0;
+            top++;
+            continue;
+        }
+        arg[id++]=argvStr[i];
+    }
+    argv[top]=(char*)malloc(MAX_ARGS_LEN*sizeof(char));
+    strcpy(argv[top],arg);
+    id=0;
+    top++;
+    argv[top]=NULL;
 
     int ret = execve(path, argv, NULL);
     if (ret == -1)
     {
         extern int errno;
-        clog_error(CLOG(UNIQ_LOG_ID), "execve error,errno:%d,errnoinfo:%s", errno, strerror(errno));
         exit(EXEC_ERROR_EXIT_CODE);
     }
     return NULL;
@@ -239,7 +263,7 @@ void *ParAfterRun(const void *params)
 
 void RunnerLogic(const void *params)
 {
-    struct FuncPointerNode *objFuncList=NULL;
+    struct FuncPointerNode *objFuncList = NULL;
     FuncPointer funcList[] = {Run, ParMonitor, ParAfterRun};
     for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
         AddFuncToList(&objFuncList, funcList[i]);
@@ -249,7 +273,7 @@ void RunnerLogic(const void *params)
 
 void ExecutorLogic(const void *params)
 {
-    struct FuncPointerNode *objFuncList=NULL;
+    struct FuncPointerNode *objFuncList = NULL;
     FuncPointer funcList[] = {ChildInit, ChildRun};
     for (int i = 0; i < sizeof(funcList) / sizeof(FuncPointer); i++)
         AddFuncToList(&objFuncList, funcList[i]);

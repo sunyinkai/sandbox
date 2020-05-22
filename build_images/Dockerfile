@@ -10,6 +10,7 @@ RUN apt-get update && \
     rm -rf /var/lib/vapt/lists/* 
 
 #    apt-get -y install libcap2-bin && \ 
+RUN useradd --create-home --no-log-init --shell /bin/bash --uid 65529 test
 
 COPY  ./runner_FSM_docker.out  /home/sandbox
 COPY ./config /home/sandbox/config

@@ -1,10 +1,10 @@
 {
     "language": [
         {
-            "language": "python3.7",
+            "language": "python3.5",
             "needCompile": 0,
             "compileArgs": " ",
-            "runArgs": "/usr/bin/python3.7 $SRC",
+            "runArgs": "/usr/bin/python3.5 $SRC",
             "syscallMode":"white",
             "syscallItems":[0,1,2,3,4,5,6,8,9,10,11,12,13,14,16,
                 21,25,32,39,41,42,59,60,72,78,79,89,97,99,102,104,

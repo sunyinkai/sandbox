@@ -1,10 +1,10 @@
 {
-  "language": "g++",
+  "language": "python3.5",
   "time": 1000,
   "memory": 65536,
   "disk": 65536,
-  "sysInputFile": "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_in.txt",
-  "sysOutputFile": "/home/naoh/Program/go/src/sandbox/output/CPP/cpp_output.txt",
-  "sourceFile": "/home/naoh/Program/go/src/sandbox/output/CPP/main.cpp",
-  "resultJsonFile": "/home/naoh/Program/go/src/sandbox/docker/test/result_123.json"
+  "sysInputFile": "/tmp/GO/go_in.txt",
+  "sysOutputFile": "/tmp/GO/go_output.txt",
+  "sourceFile": "/tmp/GO/a.go",
+  "resultJsonFile": "/tmp/GO/result.json"
 }
